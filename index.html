@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Softball Smarts ⚾</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   CSS VARIABLES & RESET
+   ═══════════════════════════════════════ */
+:root {
+  --grass: #4a9e3f;
+  --grass-dark: #3d8534;
+  --dirt: #c4956a;
+  --sky: #5bb8f5;
+  --sky-dark: #3a9fe0;
+  --white: #fff;
+  --yellow: #ffd93d;
+  --green: #2dd4a0;
+  --red: #ff6b6b;
+  --dark: #2c3e50;
+  --blue: #4a90d9;
+  --blue-hover: #3a7bc8;
+  --orange: #f5a623;
+  --shadow: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+  --radius: 16px;
+  --radius-lg: 20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Nunito',sans-serif;background:var(--sky);color:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh}
+
+/* ── Background ── */
+body::before{content:’’;position:fixed;bottom:0;left:0;right:0;height:30%;background:linear-gradient(to bottom,var(–grass),var(–grass-dark));z-index:0;border-top:4px solid #5ab84e}
+.cloud{position:fixed;background:rgba(255,255,255,0.45);border-radius:50px;z-index:0}
+.cloud::before,.cloud::after{content:’’;position:absolute;background:inherit;border-radius:50%}
+.cloud-1{width:120px;height:40px;top:6%;left:8%;animation:drift 25s linear infinite}
+.cloud-1::before{width:50px;height:50px;top:-25px;left:20px}.cloud-1::after{width:35px;height:35px;top:-15px;left:60px}
+.cloud-2{width:90px;height:30px;top:14%;right:12%;animation:drift 30s linear infinite reverse}
+.cloud-2::before{width:40px;height:40px;top:-20px;left:15px}.cloud-2::after{width:28px;height:28px;top:-12px;left:50px}
+.cloud-3{width:70px;height:24px;top:4%;left:50%;animation:drift 22s linear infinite}
+.cloud-3::before{width:32px;height:32px;top:-16px;left:12px}.cloud-3::after{width:24px;height:24px;top:-10px;left:38px}
+@keyframes drift{0%{transform:translateX(0)}50%{transform:translateX(40px)}100%{transform:translateX(0)}}
+
+/* ── App container ── */
+.app{position:relative;z-index:1;width:100%;max-width:600px;padding:12px 16px;display:flex;flex-direction:column;align-items:center;height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.app::-webkit-scrollbar{display:none}
+
+/* ── Screens ── */
+.screen{display:none;flex-direction:column;align-items:center;width:100%}
+.screen.active{display:flex}
+
+/* ── Shared title ── */
+.app-title{font-family:‘Lilita One’,cursive;font-size:2.1rem;color:var(–white);text-shadow:3px 3px 0 rgba(0,0,0,0.2);margin-bottom:2px;letter-spacing:1px}
+.app-subtitle{font-size:0.85rem;font-weight:700;color:rgba(255,255,255,0.8);margin-bottom:10px}
+
+/* ═══════════════════════════════════════
+HOME / CATEGORY SELECT SCREEN
+═══════════════════════════════════════ */
+.home-scroll{width:100%;flex:1;overflow-y:auto;padding-bottom:20px}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:8px}
+.cat-card{background:var(–white);border-radius:var(–radius-lg);padding:16px 12px;text-align:center;box-shadow:var(–shadow-lg);cursor:pointer;transition:transform 0.15s;border:3px solid transparent;position:relative;overflow:hidden}
+.cat-card:active{transform:scale(0.96)}
+.cat-card:hover{border-color:var(–blue)}
+.cat-card-icon{font-size:2.2rem;margin-bottom:6px;display:block}
+.cat-card-title{font-family:‘Lilita One’,cursive;font-size:0.95rem;color:var(–dark);line-height:1.2;margin-bottom:4px}
+.cat-card-count{font-size:0.72rem;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:1px}
+.cat-card-stripe{position:absolute;top:0;left:0;right:0;height:4px}
+
+/* Color stripes for categories */
+.cat-baserunning .cat-card-stripe{background:#2dd4a0}
+.cat-safety .cat-card-stripe{background:#ff6b6b}
+.cat-fielding .cat-card-stripe{background:#4a90d9}
+.cat-batting .cat-card-stripe{background:#f5a623}
+.cat-pitcher .cat-card-stripe{background:#a78bfa}
+.cat-catcher .cat-card-stripe{background:#f472b6}
+.cat-firstbase .cat-card-stripe{background:#fb923c}
+.cat-middle .cat-card-stripe{background:#38bdf8}
+.cat-thirdbase .cat-card-stripe{background:#facc15}
+.cat-outfield .cat-card-stripe{background:#34d399}
+
+.play-all-btn{background:linear-gradient(135deg,var(–blue),#5b9ee0);border:none;border-radius:var(–radius);padding:14px 24px;font-family:‘Lilita One’,cursive;font-size:1.1rem;color:white;cursor:pointer;box-shadow:var(–shadow-lg);letter-spacing:1px;text-shadow:1px 1px 0 rgba(0,0,0,0.15);width:100%;margin-top:10px;transition:transform 0.15s}
+.play-all-btn:active{transform:scale(0.96)}
+
+.home-header-card{background:var(–white);border-radius:var(–radius-lg);padding:18px 16px;text-align:center;box-shadow:var(–shadow-lg);width:100%;margin-bottom:10px}
+.home-header-card .emoji{font-size:2.5rem}
+.home-header-card .tagline{font-size:0.95rem;font-weight:700;color:#666;margin-top:4px;line-height:1.3}
+
+/* ═══════════════════════════════════════
+GAME SCREEN
+═══════════════════════════════════════ */
+.game-header{display:flex;align-items:center;gap:8px;width:100%;margin-bottom:6px}
+.back-btn{background:rgba(255,255,255,0.25);border:none;border-radius:10px;padding:6px 12px;font-family:‘Nunito’,sans-serif;font-weight:800;font-size:0.85rem;color:white;cursor:pointer}
+.game-cat-label{font-size:0.85rem;font-weight:800;color:rgba(255,255,255,0.9);flex:1;text-align:center}
+.score-display{display:flex;gap:10px}
+.score-item{background:rgba(255,255,255,0.2);border-radius:10px;padding:4px 10px;display:flex;align-items:center;gap:4px;font-weight:800;font-size:0.9rem;color:white}
+.score-icon{font-size:1rem}
+
+/* Progress */
+.progress-wrap{width:100%;margin-bottom:6px}
+.progress-bar-outer{width:100%;height:14px;background:rgba(255,255,255,0.3);border-radius:10px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.1)}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(–yellow),#ffb347);border-radius:10px;transition:width 0.5s ease;position:relative}
+.progress-bar-inner::after{content:’’;position:absolute;top:2px;left:6px;right:6px;height:4px;background:rgba(255,255,255,0.3);border-radius:3px}
+.progress-text{font-size:0.78rem;font-weight:800;color:rgba(255,255,255,0.85);text-align:center;margin-top:3px}
+
+/* Diamond */
+.diamond-wrap{width:100%;max-width:380px;aspect-ratio:1.15;margin-bottom:6px;flex-shrink:0}
+.diamond-wrap svg{width:100%;height:100%}
+
+/* Scenario card */
+.scenario-card{background:var(–white);border-radius:var(–radius-lg);padding:14px 18px;width:100%;box-shadow:var(–shadow-lg);margin-bottom:10px;position:relative;overflow:hidden}
+.scenario-card::before{content:’’;position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(–orange),var(–yellow),var(–orange))}
+.scenario-label{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(–orange);margin-bottom:4px}
+.scenario-text{font-size:1.05rem;font-weight:700;line-height:1.35;color:var(–dark)}
+
+/* Answers */
+.answers{display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:10px}
+.answer-btn{background:var(–white);border:3px solid #e0e0e0;border-radius:var(–radius);padding:12px 16px;font-family:‘Nunito’,sans-serif;font-size:0.95rem;font-weight:700;color:var(–dark);cursor:pointer;transition:all 0.15s;box-shadow:var(–shadow);display:flex;align-items:center;gap:10px;text-align:left;-webkit-appearance:none;position:relative;overflow:hidden}
+.answer-btn:active{transform:scale(0.97)}
+.answer-btn:not(.disabled):hover{border-color:var(–blue);background:#f0f7ff}
+.answer-letter{width:32px;height:32px;border-radius:50%;background:var(–blue);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0}
+.answer-btn.correct{border-color:var(–green);background:#e6fff6;animation:popIn 0.35s ease}
+.answer-btn.correct .answer-letter{background:var(–green)}
+.answer-btn.wrong{border-color:var(–red);background:#fff0f0;animation:shake 0.4s ease}
+.answer-btn.wrong .answer-letter{background:var(–red)}
+.answer-btn.disabled{pointer-events:none;opacity:0.45}
+.answer-btn.correct.disabled,.answer-btn.wrong.disabled{opacity:1}
+.answer-btn.reveal-correct{border-color:var(–green);background:#e6fff6;opacity:1}
+.answer-btn.reveal-correct .answer-letter{background:var(–green)}
+
+@keyframes popIn{0%{transform:scale(1)}30%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* Feedback */
+.feedback{width:100%;border-radius:var(–radius);padding:12px 16px;margin-bottom:10px;font-weight:700;font-size:0.92rem;line-height:1.35;display:none;animation:slideUp 0.3s ease}
+.feedback.show{display:block}
+.feedback.correct-fb{background:#e6fff6;color:#1a7a5a;border:2px solid var(–green)}
+.feedback.wrong-fb{background:#fff0f0;color:#c0392b;border:2px solid var(–red)}
+.feedback-icon{font-size:1.1rem;margin-right:4px}
+.feedback-explain{display:block;margin-top:4px;font-weight:600;font-size:0.85rem;opacity:0.85}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Next button */
+.next-btn{background:linear-gradient(135deg,var(–orange),#f7b731);border:none;border-radius:var(–radius);padding:14px 36px;font-family:‘Lilita One’,cursive;font-size:1.2rem;color:white;cursor:pointer;box-shadow:var(–shadow-lg);display:none;letter-spacing:1px;text-shadow:1px 1px 0 rgba(0,0,0,0.15);transition:transform 0.15s}
+.next-btn.show{display:block}
+.next-btn:active{transform:scale(0.95)}
+
+/* ═══════════════════════════════════════
+RESULTS SCREEN
+═══════════════════════════════════════ */
+.results-card{background:var(–white);border-radius:24px;padding:28px 24px;text-align:center;box-shadow:var(–shadow-lg);max-width:420px;width:100%}
+.results-emoji{font-size:3.5rem;margin-bottom:8px}
+.results-title{font-family:‘Lilita One’,cursive;font-size:1.8rem;color:var(–dark);margin-bottom:6px}
+.results-score{font-size:1.1rem;font-weight:700;color:#666;margin-bottom:6px}
+.results-stars{font-size:2.2rem;margin-bottom:12px;letter-spacing:4px}
+.results-message{font-size:0.95rem;font-weight:600;color:#888;margin-bottom:20px;line-height:1.4}
+.results-btns{display:flex;flex-direction:column;gap:10px}
+.result-btn{border:none;border-radius:var(–radius);padding:14px 24px;font-family:‘Lilita One’,cursive;font-size:1.1rem;color:white;cursor:pointer;box-shadow:var(–shadow-lg);letter-spacing:1px;text-shadow:1px 1px 0 rgba(0,0,0,0.15);transition:transform 0.15s}
+.result-btn:active{transform:scale(0.95)}
+.result-btn.primary{background:linear-gradient(135deg,var(–blue),#5b9ee0)}
+.result-btn.secondary{background:linear-gradient(135deg,var(–orange),#f7b731)}
+
+/* ── Confetti ── */
+.confetti-box{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:100;overflow:hidden}
+.confetti-p{position:absolute;top:-20px;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* ── Responsive ── */
+@media(max-height:700px){
+.app-title{font-size:1.6rem}
+.diamond-wrap{max-width:300px}
+.scenario-card{padding:10px 14px}
+.scenario-text{font-size:0.95rem}
+.answer-btn{padding:10px 12px;font-size:0.88rem}
+.answer-letter{width:28px;height:28px;font-size:0.8rem}
+.answers{gap:6px}
+}
+@media(max-height:600px){
+.diamond-wrap{max-width:240px}
+.app-title{font-size:1.4rem}
+}
+@media(min-width:768px){
+.cat-grid{grid-template-columns:1fr 1fr 1fr}
+}
+</style>
+
+</head>
+<body>
+
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+
+<div class="app" id="app">
+
+<!-- ═══════════════ HOME SCREEN ═══════════════ -->
+
+<div class="screen active" id="homeScreen">
+  <div class="app-title">Softball Smarts</div>
+  <div class="app-subtitle">Pick a category to practice!</div>
+  <div class="home-scroll">
+    <div class="home-header-card">
+      <div class="emoji">🥎</div>
+      <div class="tagline">Learn what to do in every game situation!<br>Tap a category to get started.</div>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+    <button class="play-all-btn" onclick="startGame('all')">🎯 Play All (Random Mix)</button>
+  </div>
+</div>
+
+<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+
+<div class="screen" id="gameScreen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goHome()">◀ Back</button>
+    <div class="game-cat-label" id="gameCatLabel"></div>
+    <div class="score-display">
+      <div class="score-item"><span class="score-icon">✅</span><span id="correctCount">0</span></div>
+      <div class="score-item"><span class="score-icon">❌</span><span id="wrongCount">0</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText"></div>
+  </div>
+  <div class="diamond-wrap">
+    <svg id="dSvg" viewBox="0 0 400 370" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glG" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glY" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glB" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" fill="#2dd4a0"><path d="M0 0L10 5L0 10z"/></marker>
+        <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" fill="#ff6b6b"><path d="M0 0L10 5L0 10z"/></marker>
+        <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" fill="rgba(255,255,255,0.9)"><path d="M0 0L10 5L0 10z"/></marker>
+        <radialGradient id="bGr" cx="40%" cy="35%"><stop offset="0%" stop-color="#ffffaa"/><stop offset="100%" stop-color="#ffd93d"/></radialGradient>
+      </defs>
+      <ellipse cx="200" cy="175" rx="190" ry="165" fill="#5ab84e"/>
+      <polygon points="200,55 340,185 200,310 60,185" fill="#d4a574" stroke="#b8956a" stroke-width="2"/>
+      <circle cx="200" cy="183" r="55" fill="#4a9e3f"/>
+      <line x1="200" y1="55" x2="340" y2="185" stroke="white" stroke-width="2" opacity="0.5"/>
+      <line x1="340" y1="185" x2="200" y2="310" stroke="white" stroke-width="2" opacity="0.5"/>
+      <line x1="200" y1="310" x2="60" y2="185" stroke="white" stroke-width="2" opacity="0.5"/>
+      <line x1="60" y1="185" x2="200" y2="55" stroke="white" stroke-width="2" opacity="0.5"/>
+      <circle cx="200" cy="183" r="11" fill="#d4a574" stroke="#b8956a" stroke-width="1.5"/>
+      <rect x="194" y="181" width="12" height="4" rx="1" fill="white" opacity="0.7"/>
+      <line x1="200" y1="310" x2="385" y2="125" stroke="white" stroke-width="1.5" opacity="0.25" stroke-dasharray="6,4"/>
+      <line x1="200" y1="310" x2="15" y2="125" stroke="white" stroke-width="1.5" opacity="0.25" stroke-dasharray="6,4"/>
+      <g id="baseG">
+        <rect id="base2" x="191" y="46" width="18" height="18" rx="2" transform="rotate(45 200 55)" fill="white" stroke="#ddd" stroke-width="1.5"/>
+        <rect id="base1" x="331" y="176" width="18" height="18" rx="2" transform="rotate(45 340 185)" fill="white" stroke="#ddd" stroke-width="1.5"/>
+        <rect id="base3" x="51" y="176" width="18" height="18" rx="2" transform="rotate(45 60 185)" fill="white" stroke="#ddd" stroke-width="1.5"/>
+        <polygon id="homeP" points="200,305 192,311 192,319 208,319 208,311" fill="white" stroke="#ddd" stroke-width="1.5"/>
+      </g>
+      <text x="365" y="190" font-family="Nunito" font-size="12" font-weight="800" fill="white" opacity="0.6">1B</text>
+      <text x="200" y="32" font-family="Nunito" font-size="12" font-weight="800" fill="white" text-anchor="middle" opacity="0.6">2B</text>
+      <text x="22" y="190" font-family="Nunito" font-size="12" font-weight="800" fill="white" opacity="0.6">3B</text>
+      <text x="200" y="348" font-family="Nunito" font-size="12" font-weight="800" fill="white" text-anchor="middle" opacity="0.6">HOME</text>
+      <g id="fldG"></g>
+      <g id="dynG"></g>
+    </svg>
+  </div>
+  <div class="scenario-card">
+    <div class="scenario-label" id="scenarioLabel">What do you do?</div>
+    <div class="scenario-text" id="scenarioText"></div>
+  </div>
+  <div class="answers" id="answersEl"></div>
+  <div class="feedback" id="feedbackEl"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Play ▶</button>
+  <div style="height:16px"></div>
+</div>
+
+<!-- ═══════════════ RESULTS SCREEN ═══════════════ -->
+
+<div class="screen" id="resultsScreen">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%">
+    <div class="results-card">
+      <div class="results-emoji" id="rEmoji">🏆</div>
+      <div class="results-title" id="rTitle">Great Job!</div>
+      <div class="results-score" id="rScore"></div>
+      <div class="results-stars" id="rStars"></div>
+      <div class="results-message" id="rMsg"></div>
+      <div class="results-btns">
+        <button class="result-btn secondary" onclick="startGame(lastCat)">Play Again!</button>
+        <button class="result-btn primary" onclick="goHome()">Pick Another Category</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+<div class="confetti-box" id="confettiBox"></div>
+
+<script>
+/* ═══════════════════════════════════════
+   POSITIONS & SVG HELPERS
+   ═══════════════════════════════════════ */
+const P={
+  home:{x:200,y:312},b1:{x:340,y:185},b2:{x:200,y:55},b3:{x:60,y:185},
+  pitcher:{x:200,y:178},catcher:{x:200,y:340},
+  f1b:{x:315,y:195},f2b:{x:260,y:130},ss:{x:140,y:130},f3b:{x:85,y:195},
+  lf:{x:70,y:80},cf:{x:200,y:40},rf:{x:330,y:80},
+  runH1:{x:270,y:248},run12:{x:270,y:120},run23:{x:130,y:120},run3H:{x:130,y:248},
+  // Extra positions for animation
+  ssDeep:{x:130,y:145},f2bPos:{x:260,y:145},
+  cutLF:{x:130,y:150},cutRF:{x:270,y:150},
+  behindHome:{x:200,y:355},
+  foulR:{x:370,y:200},foulL:{x:30,y:200},
+  deepLF:{x:50,y:55},deepCF:{x:200,y:20},deepRF:{x:350,y:55}
+};
+
+const NS="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+const dynG=()=>$('dynG'), fldG=()=>$('fldG');
+
+function clearField(){dynG().innerHTML='';fldG().innerHTML='';
+['base1','base2','base3','homeP'].forEach(id=>{const e=$(id);e.removeAttribute('filter');e.setAttribute('fill','white');e.setAttribute('stroke','#ddd')})}
+
+function svgEl(tag,attrs){const e=document.createElementNS(NS,tag);for(let k in attrs)e.setAttribute(k,attrs[k]);return e}
+
+function addCircle(parent,cx,cy,r,fill,stroke,sw){
+  const c=svgEl('circle',{cx,cy,r,fill});
+  if(stroke){c.setAttribute('stroke',stroke);c.setAttribute('stroke-width',sw||2)}
+  parent.appendChild(c);return c;
+}
+function addText(parent,x,y,txt,size,fill,anchor){
+  const t=svgEl('text',{x,y,'font-family':'Nunito,sans-serif','font-size':size||11,'font-weight':'800',fill:fill||'white','text-anchor':anchor||'middle'});
+  t.textContent=txt;parent.appendChild(t);return t;
+}
+
+/* ── YOU marker ── */
+function addYou(pos){
+  const g=svgEl('g',{});
+  // pulse
+  const pulse=addCircle(g,pos.x,pos.y,16,'none','#4a90d9',2);
+  pulse.setAttribute('opacity','0.5');
+  const a1=svgEl('animate',{attributeName:'r',values:'16;22;16',dur:'1.5s',repeatCount:'indefinite'});
+  const a2=svgEl('animate',{attributeName:'opacity',values:'0.5;0;0.5',dur:'1.5s',repeatCount:'indefinite'});
+  pulse.appendChild(a1);pulse.appendChild(a2);
+  addCircle(g,pos.x,pos.y,14,'#4a90d9','white',3);
+  addText(g,pos.x,pos.y+4.5,'YOU',10,'white');
+  dynG().appendChild(g);return g;
+}
+
+/* ── Other runner ── */
+function addRunner(pos,label){
+  const g=svgEl('g',{});
+  addCircle(g,pos.x,pos.y,10,'#f5a623','white',2);
+  if(label)addText(g,pos.x,pos.y+3.5,label,8,'white');
+  dynG().appendChild(g);return g;
+}
+
+/* ── Fielder dots ── */
+function addFielder(pos,label){
+  const g=svgEl('g',{});
+  addCircle(g,pos.x,pos.y,8,'rgba(255,255,255,0.35)','rgba(255,255,255,0.5)',1.5);
+  if(label)addText(g,pos.x,pos.y+3.5,label,7,'rgba(255,255,255,0.8)');
+  fldG().appendChild(g);return g;
+}
+function addAllFielders(exclude){
+  const flds=[{p:P.pitcher,l:'P'},{p:P.catcher,l:'C'},{p:P.f1b,l:'1B'},{p:P.f2b,l:'2B'},{p:P.ss,l:'SS'},{p:P.f3b,l:'3B'},{p:P.lf,l:'LF'},{p:P.cf,l:'CF'},{p:P.rf,l:'RF'}];
+  flds.forEach(f=>{if(!exclude||!exclude.includes(f.l))addFielder(f.p,f.l)});
+}
+
+/* ── Glow base ── */
+function glow(baseId,color){
+  const e=$(baseId);
+  if(color==='green'){e.setAttribute('filter','url(#glG)');e.setAttribute('fill','#2dd4a0');e.setAttribute('stroke','#1fa882')}
+  else if(color==='yellow'){e.setAttribute('filter','url(#glY)');e.setAttribute('fill','#ffd93d');e.setAttribute('stroke','#e6c235')}
+  else if(color==='blue'){e.setAttribute('filter','url(#glB)');e.setAttribute('fill','#7ec8f0');e.setAttribute('stroke','#4a90d9')}
+}
+
+/* ── Animated ball ── */
+function animBall(from,to,dur,delay,arc){
+  const g=svgEl('g',{opacity:0});
+  addCircle(g,0,3,5,'rgba(0,0,0,0.15)',null);
+  const bc=addCircle(g,0,0,7,'url(#bGr)','#cc9900',1.5);
+  const st=svgEl('path',{d:'M-4,-2 Q0,-5 4,-2',stroke:'#cc3333','stroke-width':1,fill:'none'});
+  g.appendChild(st);dynG().appendChild(g);
+  const t0=performance.now()+(delay||0),d=dur||800,a=arc||0;
+  function tick(now){const el=now-t0;if(el<0){requestAnimationFrame(tick);return}
+  const t=Math.min(el/d,1),ease=1-Math.pow(1-t,2);
+  const x=from.x+(to.x-from.x)*ease,baseY=from.y+(to.y-from.y)*ease;
+  const y=baseY-a*Math.sin(Math.PI*t);
+  g.setAttribute('transform',`translate(${x},${y})`);
+  g.setAttribute('opacity',t<0.05?t/0.05:(t>0.92?Math.max(0,(1-t)/0.08):1));
+  bc.setAttribute('transform',`rotate(${t*720})`);st.setAttribute('transform',`rotate(${t*720})`);
+  if(t<1)requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);return g;
+}
+
+/* ── Animated runner ── */
+function animRunner(from,to,dur,delay){
+  const g=svgEl('g',{opacity:0});
+  addCircle(g,0,0,14,'#4a90d9','white',3);
+  addText(g,0,4.5,'YOU',10,'white');
+  dynG().appendChild(g);
+  const t0=performance.now()+(delay||0),d=dur||1000;
+  function tick(now){const el=now-t0;if(el<0){requestAnimationFrame(tick);return}
+  const t=Math.min(el/d,1),ease=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  const x=from.x+(to.x-from.x)*ease,y=from.y+(to.y-from.y)*ease;
+  g.setAttribute('transform',`translate(${x},${y})`);g.setAttribute('opacity',t<0.08?t/0.08:1);
+  if(t<1)requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);return g;
+}
+
+/* ── Arrow ── */
+function addArrow(from,to,color,dashed,delay){
+  const dx=to.x-from.x,dy=to.y-from.y,len=Math.sqrt(dx*dx+dy*dy),s=20,nx=dx/len,ny=dy/len;
+  const mk=color==='#ff6b6b'?'url(#arrR)':color==='rgba(255,255,255,0.9)'?'url(#arrW)':'url(#arrG)';
+  const l=svgEl('line',{x1:from.x+nx*s,y1:from.y+ny*s,x2:to.x-nx*s,y2:to.y-ny*s,stroke:color||'#2dd4a0','stroke-width':3,'stroke-linecap':'round','marker-end':mk,opacity:0});
+  if(dashed)l.setAttribute('stroke-dasharray','8,5');
+  dynG().appendChild(l);
+  const t0=performance.now()+(delay||0);
+  function tick(now){const el=now-t0;if(el<0){requestAnimationFrame(tick);return}
+  const t=Math.min(el/400,1);l.setAttribute('opacity',t*0.85);
+  if(t<1)requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);return l;
+}
+
+/* ── Badge ── */
+function addBadge(x,y,txt,bg,delay){
+  const g=svgEl('g',{opacity:0});
+  const w=txt.length*6+20;
+  g.appendChild(svgEl('rect',{x:x-w/2,y:y-10,width:w,height:20,rx:10,fill:bg||'rgba(0,0,0,0.55)'}));
+  addText(g,x,y+4,txt,9.5,'white');
+  dynG().appendChild(g);
+  const t0=performance.now()+(delay||0);
+  function tick(now){const el=now-t0;if(el<0){requestAnimationFrame(tick);return}
+  const t=Math.min(el/400,1);g.setAttribute('opacity',t);g.setAttribute('transform',`translate(0,${(1-t)*6})`);
+  if(t<1)requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);return g;
+}
+
+/* ═══════════════════════════════════════
+   SCENARIO DATA — ALL 109 SCENARIOS
+   ═══════════════════════════════════════ */
+const CATS = {
+  baserunning: { icon:'🏃‍♀️', title:'Baserunning', color:'#2dd4a0', label:'🏃‍♀️ Baserunning' },
+  safety: { icon:'🦺', title:'Safety & Equipment', color:'#ff6b6b', label:'🦺 Safety' },
+  fielding: { icon:'🧤', title:'Fielding Decisions', color:'#4a90d9', label:'🧤 Fielding' },
+  batting: { icon:'⚾', title:'Batting & Dugout', color:'#f5a623', label:'⚾ Batting & Dugout' },
+  pitcher: { icon:'🎯', title:'Pitcher', color:'#a78bfa', label:'🎯 Pitcher' },
+  catcher: { icon:'😷', title:'Catcher', color:'#f472b6', label:'😷 Catcher' },
+  firstbase: { icon:'🥇', title:'First Base', color:'#fb923c', label:'🥇 First Base' },
+  middle: { icon:'🔷', title:'Shortstop & 2nd Base', color:'#38bdf8', label:'🔷 SS & 2B' },
+  thirdbase: { icon:'🔥', title:'Third Base', color:'#facc15', label:'🔥 Third Base' },
+  outfield: { icon:'👀', title:'Outfield', color:'#34d399', label:'👀 Outfield' }
+};
+
+// Animation helper: returns a setup function
+// Each scenario has: text, answers[], correct (index), explain, anim (function)
+const ALL = {
+baserunning: [
+{text:"You just hit the ball on the ground toward the shortstop. What do you do?",answers:["Run as fast as you can to 1st base!","Wait at home to see if they catch it","Run to 2nd base","Walk slowly to 1st base"],correct:0,explain:"On a ground ball, always run hard to 1st base right away! Run through the base — don't slow down before you get there.",anim(){addAllFielders();addYou(P.home);glow('homeP','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.ssDeep,600,0,15);addBadge(P.ssDeep.x,P.ssDeep.y-20,'⚾ GROUND BALL','rgba(0,0,0,0.55)',200)},500);setTimeout(()=>{addArrow(P.home,P.b1,'#2dd4a0',true,0);glow('base1','green');addBadge(P.runH1.x+15,P.runH1.y,'🏃‍♀️ RUN!','#2dd4a0',200)},1200)}},
+{text:"You're on 1st base. The batter hits a fly ball high in the air to the outfield. What should you do?",answers:["Run to 2nd base right away","Stay close to 1st base and wait to see if it's caught","Run back to home plate","Run to 3rd base"],correct:1,explain:"On a fly ball, stay near your base! If the fielder catches it, you need to be on 1st base or you could be out. This is called 'tagging up.'",anim(){addAllFielders();addYou(P.b1);glow('base1','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.rf,900,0,80);addBadge(P.rf.x,P.rf.y-25,'🧤 FLY BALL','rgba(0,0,0,0.55)',500)},500);setTimeout(()=>{glow('base1','green');addBadge(P.b1.x+40,P.b1.y,'✅ STAY!','#2dd4a0',0);addArrow(P.b1,P.b2,'#ff6b6b',true,300);addBadge(P.run12.x+15,P.run12.y,'❌ NO!','#ff6b6b',500)},1800)}},
+{text:"You're on 2nd base. The batter hits a ground ball past the infielders. What should you do?",answers:["Stay on 2nd base no matter what","Run toward home plate","Run to 3rd base (and look at your coach!)","Run back to 1st base"],correct:2,explain:"When the ball is hit on the ground and gets past the infielders, run to the next base! Always look at your 3rd base coach — they'll tell you to keep going or stop.",anim(){addAllFielders();addYou(P.b2);glow('base2','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:280,y:150},600,0,10);addBadge(280,130,'⚾ GROUND BALL','rgba(0,0,0,0.55)',300)},500);setTimeout(()=>{addArrow(P.b2,P.b3,'#2dd4a0',true,0);glow('base3','green');addBadge(P.run23.x-10,P.run23.y,'🏃‍♀️ RUN!','#2dd4a0',200)},1200)}},
+{text:"You're running to 1st base and the ball beats you there. The first baseman is standing on the base with the ball. Are you out?",answers:["No, I'm safe because I was running hard","Yes! The fielder caught the ball and touched 1st base before I got there","Only if the umpire says so","No, they have to tag me"],correct:1,explain:"At 1st base, they only need to touch the base while holding the ball before you get there. That's called a 'force out.' Run hard every time!",anim(){addAllFielders();addYou({x:280,y:230});glow('base1','yellow');setTimeout(()=>{animBall(P.ss,P.b1,500,0,20);addBadge(P.b1.x+5,P.b1.y+30,'⚾ BALL FIRST!','#ff6b6b',400)},400)}},
+{text:"You're on 3rd base. A fly ball is hit deep to the outfield. The fielder catches it. Your coach yells 'TAG UP AND GO!' What do you do?",answers:["Stay on 3rd base — it was caught so I can't move","Touch 3rd base, then run home as fast as you can after the catch","Run home before the ball is caught","Run back to 2nd base"],correct:1,explain:"Tagging up means you wait on your base until the ball is caught, THEN you can run! Touch the base, wait for the catch, and sprint home to score!",anim(){addAllFielders();addYou(P.b3);glow('base3','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.lf,900,0,100)},400);setTimeout(()=>{addBadge(P.lf.x,P.lf.y-25,'🧤 CAUGHT!','rgba(0,0,0,0.55)',0)},1500);setTimeout(()=>{glow('base3','yellow');addBadge(P.b3.x,P.b3.y+30,'① TOUCH BASE','#f5a623',0)},2000);setTimeout(()=>{addArrow(P.b3,P.home,'#2dd4a0',true,0);glow('homeP','green');addBadge(P.run3H.x-25,P.run3H.y,'② RUN HOME!','#2dd4a0',200)},2800)}},
+{text:"You just hit the ball and are running to 1st base. Should you run straight through the base or stop on it?",answers:["Stop right on top of the base","Run past the base and slow down after","Jump over the base","Slide into 1st base"],correct:1,explain:"Always run THROUGH 1st base at full speed! Don't slow down — run straight past it and then slow down. You won't be out for running past 1st base (as long as you don't turn toward 2nd).",anim(){addAllFielders();addYou(P.home);setTimeout(()=>{animRunner(P.home,{x:370,y:175},1200,0);addArrow(P.home,{x:370,y:175},'#2dd4a0',true,0);glow('base1','green');addBadge(P.b1.x+10,P.b1.y-25,'RUN THROUGH!','#2dd4a0',400)},500)}},
+{text:"You're on 1st base. The batter hits a ground ball right to the 2nd baseman. What should you do?",answers:["Stay on 1st base","Run to 2nd base — you have to because the batter is running to 1st","Run back to home plate","Duck!"],correct:1,explain:"When there's a runner behind you (the batter heading to 1st), you are 'forced' to move forward. You MUST run to 2nd base. This is called a 'force play.'",anim(){addAllFielders();addYou(P.b1);glow('base1','blue');addRunner(P.home,'B');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f2bPos,600,0,10)},400);setTimeout(()=>{addArrow(P.b1,P.b2,'#2dd4a0',true,0);glow('base2','green');addBadge(P.run12.x+20,P.run12.y,'FORCED!','#2dd4a0',200)},1100)}},
+{text:"You hit a ball into the gap in the outfield! You round 1st base and your coach is waving their arms in a circle. What does that mean?",answers:["Stop at 1st base","Go back to home plate","Keep running to 2nd base (or more)!","Spin around in a circle"],correct:2,explain:"When the base coach waves their arms in a circle, that means KEEP GOING! They're telling you to run to the next base. Always watch your coaches!",anim(){addAllFielders();addYou(P.b1);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:140,y:50},800,0,60)},300);setTimeout(()=>{addArrow(P.b1,P.b2,'#2dd4a0',true,0);glow('base2','green');addBadge(P.run12.x+15,P.run12.y,'🏃‍♀️ KEEP GOING!','#2dd4a0',200)},1200)}},
+{text:"You're on 2nd base. A fly ball is hit to the outfielder and she DROPS it! What should you do?",answers:["Stay on 2nd base because it was a fly ball","Run to 3rd base! The ball was dropped so you can go!","Run back to 1st base","Wait for your coach to come get you"],correct:1,explain:"If the fielder DROPS the fly ball, it's not a catch! You can run! The ball is still in play so get moving to the next base.",anim(){addAllFielders();addYou(P.b2);glow('base2','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:260,y:80},800,0,50)},400);setTimeout(()=>{addBadge(260,60,'DROPPED!','#ff6b6b',0)},1400);setTimeout(()=>{addArrow(P.b2,P.b3,'#2dd4a0',true,0);glow('base3','green');addBadge(P.run23.x-10,P.run23.y,'🏃‍♀️ GO!','#2dd4a0',200)},1800)}},
+{text:"You're the runner on 1st base. The batter hits a popup right above the pitcher. It's super high. What should you do?",answers:["Run to 2nd base as fast as possible","Stay on 1st base — a popup that high will probably be caught","Run halfway and wait","Run to 3rd base"],correct:1,explain:"A high popup near the infield is almost always going to be caught. Stay on your base! If you run and it's caught, they can throw to 1st and you'll be out too.",anim(){addAllFielders();addYou(P.b1);glow('base1','blue');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:200,y:120},700,0,90);addBadge(200,95,'⬆️ POPUP!','rgba(0,0,0,0.55)',400)},500);setTimeout(()=>{glow('base1','green');addBadge(P.b1.x+40,P.b1.y,'✅ STAY!','#2dd4a0',0)},1600)}},
+{text:"You hit the ball hard and are rounding 1st base. Your base coach is holding both hands up and yelling 'STOP!' What do you do?",answers:["Keep running — you hit it hard!","Stop at 1st base like your coach says","Run back to home plate","Slide into 1st base"],correct:1,explain:"Your base coaches can see the whole field — you can't when you're running! When they say STOP, trust them and stop.",anim(){addAllFielders();addYou(P.b1);setTimeout(()=>{glow('base1','green');addBadge(P.b1.x+40,P.b1.y-15,'🛑 STOP!','#ff6b6b',0);addArrow(P.b1,P.b2,'#ff6b6b',true,300);addBadge(P.run12.x+15,P.run12.y,'❌ NO!','#ff6b6b',500)},500)}},
+{text:"The coach pitching to you has thrown 4 balls. The umpire says 'Take your base!' What do you do?",answers:["Swing at the next pitch anyway","Walk to 1st base — you got a free base!","Run to 2nd base","Sit down in the dugout"],correct:1,explain:"When you get 4 balls, that's a walk! You get to go to 1st base for free. Just jog down to 1st and stop there.",anim(){addAllFielders();addYou(P.home);glow('homeP','blue');setTimeout(()=>{addArrow(P.home,P.b1,'#2dd4a0',true,0);glow('base1','green');addBadge(200,260,'🚶‍♀️ WALK!','#2dd4a0',200)},600)}},
+{text:"You're on 2nd base. The pitcher has the ball and hasn't thrown it yet. Can you start running to 3rd?",answers:["Yes, run whenever you want!","No — you have to stay on the base until the ball is hit","Only if the coach says it's OK","Yes, but only if you're fast"],correct:1,explain:"In coach pitch, you can't leave the base until the ball is hit by the batter! If you leave early, the umpire might call you out.",anim(){addAllFielders();addYou(P.b2);glow('base2','blue');setTimeout(()=>{addBadge(P.b2.x,P.b2.y+30,'🛑 WAIT FOR HIT!','#ff6b6b',0);addArrow(P.b2,P.b3,'#ff6b6b',true,300);addBadge(P.run23.x,P.run23.y,'❌ NOT YET!','#ff6b6b',500)},500)}},
+{text:"You're safe at 1st base. Then the ball gets thrown past the 1st baseman and rolls away! What should you do?",answers:["Stay on 1st base no matter what","Look at your coach — if they wave you on, run to 2nd!","Pick up the ball and throw it back","Run all the way home"],correct:1,explain:"When the ball gets away from the fielders, you might be able to take an extra base! But always look at your coach first.",anim(){addAllFielders();addYou(P.b1);glow('base1','blue');setTimeout(()=>{animBall(P.ss,{x:370,y:200},500,0,10);addBadge(370,180,'OVERTHROW!','#ff6b6b',400)},500);setTimeout(()=>{addArrow(P.b1,P.b2,'#2dd4a0',true,0);glow('base2','green');addBadge(P.run12.x+15,P.run12.y,'👀 LOOK AT COACH!','#2dd4a0',200)},1300)}},
+{text:"The umpire puts their hands up and yells 'TIME!' You're on 2nd base. What does that mean?",answers:["Run to 3rd — hurry before time runs out!","The play has stopped — stay on your base until the umpire starts play again","Walk off the field","Go back to 1st base"],correct:1,explain:"When the umpire calls 'TIME,' the ball is dead and nobody can run. Just stay on your base and wait.",anim(){addAllFielders();addYou(P.b2);glow('base2','blue');setTimeout(()=>{addBadge(200,183,'⏸️ TIME!','rgba(0,0,0,0.7)',0);glow('base2','yellow');addBadge(P.b2.x,P.b2.y+30,'STAY PUT!','#f5a623',400)},500)}}
+],
+
+safety: [
+{text:"Your coach just told you that you're 'on deck' (batting next). What should you do right away?",answers:["Start swinging the bat as hard as you can","Put your batting helmet on","Nothing — wait until it's your turn","Take your glove off and sit down"],correct:1,explain:"Always put your helmet on when you're on deck! You need to be ready AND safe.",anim(){addYou(P.home);addBadge(200,280,'🪖 HELMET ON!','#2dd4a0',500)}},
+{text:"You just scored a run and crossed home plate! When can you take your helmet off?",answers:["Right after you touch home plate","When you get all the way inside the dugout","Whenever you feel like it","After you high-five your teammates"],correct:1,explain:"Keep your helmet on until you're all the way inside the dugout! A ball could still be in play.",anim(){addAllFielders();addYou(P.home);setTimeout(()=>{addBadge(200,340,'🪖 KEEP IT ON!','#f5a623',0);addArrow(P.home,{x:200,y:370},'#2dd4a0',true,200);addBadge(200,365,'DUGOUT → SAFE!','#2dd4a0',600)},500)}},
+{text:"You just hit the ball really hard! You start running to 1st. What should you do with the bat?",answers:["Throw it as far as you can","Drop it gently near home plate as you start to run","Carry it with you to 1st base","Hand it to the catcher"],correct:1,explain:"NEVER throw the bat! A thrown bat can hit other players and really hurt them. Just drop it near home plate.",anim(){addAllFielders();addYou(P.home);setTimeout(()=>{addBadge(180,295,'DROP BAT!','#2dd4a0',0);addBadge(220,330,'❌ DON\'T THROW!','#ff6b6b',400)},500)}},
+{text:"Your team is batting but you're not up for a while. Where should you be?",answers:["Standing behind the batter watching","In the dugout on the bench","Anywhere on the field","Playing in the parking lot"],correct:1,explain:"When you're not batting or on deck, stay in the dugout! It keeps you safe from foul balls and wild pitches.",anim(){addBadge(200,183,'🏠 DUGOUT!','#2dd4a0',500)}},
+{text:"Your coach says you're playing catcher this inning. What special gear do you need?",answers:["Just your regular glove","A catcher's helmet/mask, chest protector, and shin guards","A batting helmet","Sunglasses and a hat"],correct:1,explain:"Catchers need extra protection! The mask protects your face, the chest protector protects your body, and shin guards protect your legs.",anim(){addYou(P.catcher);addBadge(200,320,'😷🦺🦵 FULL GEAR!','#2dd4a0',500)}},
+{text:"You're running to 2nd base and there's going to be a close play. Your coach yells 'SLIDE!' What should you do?",answers:["Dive headfirst into the base","Slide feet-first into the base","Jump over the fielder","Just stop running"],correct:1,explain:"When you slide, always go FEET FIRST! Headfirst slides are dangerous for young players.",anim(){addAllFielders();addYou({x:270,y:120});glow('base2','green');setTimeout(()=>{addBadge(P.b2.x,P.b2.y+30,'FEET FIRST!','#2dd4a0',0);addBadge(P.b2.x,P.b2.y+50,'❌ NOT HEAD FIRST','#ff6b6b',400)},500)}},
+{text:"You're at bat and the pitch is coming right at you! What should you do?",answers:["Swing at it anyway","Turn away from the ball and duck — protect your face!","Catch the ball with your hands","Stand perfectly still"],correct:1,explain:"If a pitch is coming at you, turn your body AWAY and duck your head down. Your helmet protects your head. Never try to catch it!",anim(){addYou(P.home);setTimeout(()=>{animBall(P.pitcher,P.home,500,0,0);addBadge(200,260,'🛡️ TURN AWAY!','#ff6b6b',400)},400)}},
+{text:"You're in the dugout and want to go talk to your friend playing shortstop. Is it OK to walk across the field?",answers:["Sure, just run across real quick","No! Never walk across the field during play — stay in the dugout","Only if you run really fast","Only if the coach isn't looking"],correct:1,explain:"Never walk or run across the playing field during a game! Someone could be throwing a ball and you could get hit.",anim(){addAllFielders();addBadge(200,183,'❌ DON\'T CROSS!','#ff6b6b',500);addBadge(200,210,'STAY IN DUGOUT','#2dd4a0',800)}},
+{text:"You want to practice throwing with your teammate before the game. Where should you warm up?",answers:["In the outfield where the game will be played","In the warm-up area or along the fence away from the field","In the dugout — just throw in there","Right behind home plate"],correct:1,explain:"Always warm up in a safe area away from the field. If you throw where people are walking, someone could get hit!",anim(){addBadge(200,183,'✅ WARM-UP AREA','#2dd4a0',500)}},
+{text:"You're playing in the field and the batter hits the ball. But it's not coming to you. What should you do?",answers:["Sit down and wait","Watch the ball and be ready — it might come to you next!","Turn around and look at the clouds","Run to the dugout"],correct:1,explain:"Always keep your eyes on the ball! You might need to back up a teammate, cover a base, or catch a throw.",anim(){addAllFielders();addYou(P.rf);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.ss,600,0,10)},400);setTimeout(()=>{addBadge(P.rf.x,P.rf.y-25,'👀 WATCH!','#2dd4a0',0)},1100)}},
+{text:"Your teammate is about to take practice swings while on deck. Where should you NOT be?",answers:["In the dugout","Right next to the person swinging the bat","Behind the backstop","On the bench"],correct:1,explain:"Stay far away from anyone swinging a bat! Bats can slip or the batter might not see you.",anim(){addBadge(200,280,'⚠️ STAY BACK!','#ff6b6b',500)}},
+{text:"Your friend wants to play softball in sandals because it's hot. Is that OK?",answers:["Sure, sandals are fine","No — you need to wear closed-toe shoes or cleats","Only if they run fast","Barefoot is even better"],correct:1,explain:"Always wear closed-toe athletic shoes or cleats! Sandals or bare feet can lead to injuries.",anim(){addBadge(200,183,'👟 PROPER SHOES!','#2dd4a0',500)}}
+],
+
+fielding: [
+{text:"You're playing shortstop. A ground ball is hit right to you. Nobody is on base. Where do you throw?",answers:["Throw to 2nd base","Throw to 1st base to get the batter out","Throw to home plate","Hold onto the ball"],correct:1,explain:"When nobody is on base and you field a ground ball, throw to 1st base! That's where the batter is running.",anim(){addAllFielders(['SS']);addYou(P.ss);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.ss,600,0,10)},400);setTimeout(()=>{addArrow(P.ss,P.b1,'#2dd4a0',false,0);glow('base1','green');addBadge(P.b1.x+5,P.b1.y+30,'🎯 THROW HERE!','#2dd4a0',200)},1200)}},
+{text:"You're playing 2nd base. Runner on 1st. A ground ball is hit to you. What should you do?",answers:["Throw to 1st base","Throw to 3rd base","Throw to home plate","Step on 2nd base (or throw to 2nd) for the force out"],correct:3,explain:"When there's a runner on 1st and you're close to 2nd, step on the bag for the force out! Get the easy out first!",anim(){addAllFielders(['2B']);addYou(P.f2b);addRunner(P.b1,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f2bPos,600,0,10)},400);setTimeout(()=>{addArrow(P.f2b,P.b2,'#2dd4a0',false,0);glow('base2','green');addBadge(P.b2.x,P.b2.y+25,'FORCE OUT!','#2dd4a0',200)},1200)}},
+{text:"You're in the outfield and a fly ball is coming right to you! What do you do first?",answers:["Close your eyes and hope","Get under it, catch with two hands, and squeeze!","Let it bounce first","Duck out of the way"],correct:1,explain:"Get under the fly ball, use two hands (glove + bare hand on top), and squeeze! Catching a fly ball means the batter is OUT.",anim(){addAllFielders(['RF']);addYou(P.rf);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.rf,900,0,80);addBadge(P.rf.x,P.rf.y-25,'🧤 TWO HANDS!','#2dd4a0',600)},500)}},
+{text:"You're playing right field. Runner on 2nd. The batter hits a single to you. Where should you throw?",answers:["Throw to 1st base","Throw to the infield near home plate or to your cutoff person","Hold the ball and run it in","Throw to 3rd base"],correct:1,explain:"The runner on 2nd is trying to score! Throw to your cutoff person who is between you and home. Getting the ball in quickly is most important!",anim(){addAllFielders(['RF']);addYou(P.rf);addRunner(P.b2,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.rf,700,0,30)},400);setTimeout(()=>{addArrow(P.rf,P.cutRF,'#2dd4a0',false,0);addArrow(P.b2,P.home,'#ff6b6b',true,200);addBadge(P.cutRF.x,P.cutRF.y-20,'🎯 CUTOFF!','#2dd4a0',200)},1300)}},
+{text:"A slow ground ball is rolling between you (pitcher) and the 3rd baseman. Who should get it?",answers:["Both of you run at it","The closest player should call 'I got it!' — the other backs up","Wait for the outfielder","Yell at each other"],correct:1,explain:"Call the ball! Whoever is closest yells 'I GOT IT!' so the other player backs off. Communication prevents collisions!",anim(){addAllFielders();addYou(P.pitcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:140,y:200},600,0,5)},400);setTimeout(()=>{addBadge(140,180,'📢 I GOT IT!','#2dd4a0',0)},1200)}},
+{text:"You're the catcher. Runner on 3rd. The batter strikes out. What do you need to do?",answers:["Throw the ball back to the pitcher and relax","Catch the ball, hold it, and check the runner on 3rd!","Roll the ball to the pitcher","Take your mask off"],correct:1,explain:"Always check the runners! After catching the ball, look at the runner on 3rd to make sure they're not sneaking home.",anim(){addAllFielders(['C']);addYou(P.catcher);addRunner(P.b3,'R');setTimeout(()=>{addBadge(P.catcher.x,P.catcher.y-25,'👀 CHECK RUNNER!','#2dd4a0',0);addArrow(P.b3,P.home,'#ff6b6b',true,300);addBadge(P.run3H.x-15,P.run3H.y,'SNEAKING?','#ff6b6b',500)},500)}},
+{text:"You're playing 1st base. A ground ball is hit right to you. Nobody on base. What's easiest?",answers:["Field the ball and step on 1st base yourself","Throw to 2nd base","Throw to the pitcher","Throw to home plate"],correct:0,explain:"If you're the 1st baseman and the ball comes right to you, pick it up and step on the base! Easiest out in softball!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f1b,600,0,10)},400);setTimeout(()=>{glow('base1','green');addBadge(P.b1.x+5,P.b1.y+30,'STEP ON BASE!','#2dd4a0',0)},1200)}},
+{text:"You're in right field. The shortstop is throwing to 1st. What should you be doing?",answers:["Stand there and watch","Run toward 1st base to back up the throw","Run to home plate","Sit down"],correct:1,explain:"Outfielders should always move toward the base where the throw is going. If it gets past, you'll be there!",anim(){addAllFielders(['RF']);addYou(P.rf);setTimeout(()=>{animBall(P.ss,P.b1,500,0,20)},400);setTimeout(()=>{addArrow(P.rf,P.b1,'#2dd4a0',true,0);addBadge(P.rf.x-30,P.rf.y+20,'🏃‍♀️ BACK UP!','#2dd4a0',200)},1000)}},
+{text:"A pop fly is going up between you (shortstop) and the left fielder. What should you do?",answers:["Both try to catch it","Call 'I GOT IT!' loudly so your teammate knows","Both run away from it","Wait for the coach"],correct:1,explain:"Yell 'I GOT IT!' as loud as you can! This tells the other player to move out of the way. NEVER let a ball drop because nobody called it!",anim(){addAllFielders(['SS']);addYou(P.ss);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:105,y:105},800,0,70)},400);setTimeout(()=>{addBadge(105,80,'📢 CALL IT!','#2dd4a0',0)},1400)}},
+{text:"You fielded a ground ball at shortstop. The batter is already almost to 1st. What should you do?",answers:["Throw it as hard as you can","Hold onto the ball — a wild throw makes things worse","Throw to 2nd base","Run it to 1st yourself"],correct:1,explain:"If you don't have time for a good throw, hold the ball! A wild throw lets the runner take extra bases. Smart play is sometimes keeping it.",anim(){addAllFielders(['SS']);addYou(P.ss);addRunner({x:310,y:200},'B');setTimeout(()=>{addBadge(P.ss.x,P.ss.y-25,'🧠 HOLD IT!','#2dd4a0',0);addArrow(P.ss,P.b1,'#ff6b6b',true,300);addBadge(280,160,'❌ TOO LATE','#ff6b6b',500)},500)}},
+{text:"You're the catcher. The batter struck out, nobody on base. What do you do with the ball?",answers:["Throw to 1st base","Throw it back to the pitcher","Roll it to the mound","Keep it"],correct:1,explain:"After a strikeout with nobody on base, just throw the ball back to the pitcher so they can pitch to the next batter.",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{addArrow(P.catcher,P.pitcher,'#2dd4a0',false,0);addBadge(200,250,'BACK TO PITCHER','#2dd4a0',200)},500)}},
+{text:"You're playing 3rd base. The batter bunts toward you. Nobody on base. What do you do?",answers:["Wait for it to roll to you","Charge the ball, pick it up, and throw to 1st!","Kick it foul","Yell at the batter"],correct:1,explain:"On a bunt, be quick! Run toward the ball, scoop it up, and throw to 1st. Every second counts on a bunt play!",anim(){addAllFielders(['3B']);addYou(P.f3b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:130,y:250},500,0,5)},400);setTimeout(()=>{addArrow(P.f3b,{x:130,y:250},'#2dd4a0',true,0);addBadge(130,230,'CHARGE!','#2dd4a0',200);setTimeout(()=>{addArrow({x:130,y:250},P.b1,'#2dd4a0',false,0);glow('base1','green')},600)},1000)}}
+],
+
+batting: [
+{text:"Your coach posted the batting lineup. You're hitting 5th. The 3rd batter just got up. What should you be doing?",answers:["Playing in the dirt","Pay attention — you're almost up! The 4th batter is next, then YOU","Wait until the coach calls your name","Go get a drink of water"],correct:1,explain:"Always know where you are in the batting order! When the batter two spots before you gets up, start getting ready.",anim(){addBadge(200,183,'📋 KNOW YOUR SPOT!','#2dd4a0',500)}},
+{text:"Your coach says 'You're on deck!' What does that mean?",answers:["You're batting right now","You're batting NEXT — get your helmet on and be ready","You're done batting for the day","Go sit on the deck"],correct:1,explain:"'On deck' means you're the NEXT batter. Get your helmet on, grab your bat, and move to the on-deck area!",anim(){addBadge(200,183,'🪖 ON DECK = NEXT!','#2dd4a0',500)}},
+{text:"Your team is batting and you finished your at-bat two batters ago. What should you be doing?",answers:["Playing games on someone's phone","Watching the game and cheering for your teammates","Lying down on the bench","It doesn't matter"],correct:1,explain:"Good teammates watch the game and cheer! Plus you need to know the outs, runners, and when you're up again.",anim(){addBadge(200,183,'📣 CHEER!','#2dd4a0',500)}},
+{text:"You're at bat and the umpire has called two strikes. What should you be thinking?",answers:["Give up — I'll probably strike out","Protect the plate — swing at anything close!","Don't swing at all","Close eyes and swing hard"],correct:1,explain:"With 2 strikes, protect the plate! If the pitch is close, take a swing. You don't want strike 3 called without trying!",anim(){addYou(P.home);setTimeout(()=>{addBadge(200,280,'2 STRIKES!','#ff6b6b',0);addBadge(200,260,'🛡️ PROTECT PLATE!','#2dd4a0',400)},500)}},
+{text:"You hit the ball but it goes to the left of the 3rd base line, into the bleachers. What happened?",answers:["That's a home run!","That's a foul ball — it's a strike (unless you already have 2 strikes)","That's fair — run to 1st!","The batter is out"],correct:1,explain:"A ball outside the foul lines is a foul ball. It counts as a strike unless you already have 2 strikes — you can't strike out on a foul!",anim(){addAllFielders();addYou(P.home);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:30,y:200},700,0,40)},400);setTimeout(()=>{addBadge(40,180,'FOUL!','#ff6b6b',0)},1200)}},
+{text:"Your best friend is on the other team and you want to say hi. The game is going on. What should you do?",answers:["Run over to their dugout","Stay in your dugout — say hi after the game","Walk behind the backstop to wave","Yell across the field"],correct:1,explain:"During the game, stay in your dugout! It's not safe to wander around. Save socializing for after!",anim(){addBadge(200,183,'⏰ AFTER THE GAME!','#2dd4a0',500)}},
+{text:"Your coach asks 'How many outs are there?' You don't know! How can you keep track?",answers:["You don't need to know — umpire's job","Pay attention, listen to the umpire, and count on your fingers","Just guess","Ask the other team"],correct:1,explain:"Always know how many outs! It changes what you do in every situation. Watch the game and hold up fingers to count.",anim(){addBadge(200,183,'✌️ COUNT THE OUTS!','#2dd4a0',500)}},
+{text:"It's your turn to bat! What should you do before stepping into the batter's box?",answers:["Run up and start swinging","Make sure helmet is on, step into the box, get your feet set, look at the pitcher","Stand wherever you want","Start talking to the catcher"],correct:1,explain:"Check helmet, step into the box, plant your feet, get your bat up and ready, and watch the pitcher. Being ready helps you hit!",anim(){addYou(P.home);setTimeout(()=>{addBadge(200,280,'🪖 ✅ HELMET','#2dd4a0',0);addBadge(200,260,'👟 ✅ FEET SET','#2dd4a0',300);addBadge(200,240,'👀 ✅ WATCH PITCHER','#2dd4a0',600)},500)}},
+{text:"Your teammate just made the 3rd out. You were on deck. What do you do?",answers:["Keep swinging — maybe they'll let you bat","Put your bat away, grab your glove, and get ready for defense","Argue with the umpire","Sit down and cry"],correct:1,explain:"When the 3rd out happens, the inning is over! Put away your bat, grab your glove, and hustle to your position.",anim(){addBadge(200,183,'🔄 SWITCH!','#f5a623',500);setTimeout(()=>{addBadge(200,210,'BAT → GLOVE','#2dd4a0',0)},800)}},
+{text:"The umpire keeps calling 'STRIKE!' but you didn't swing. Why is it a strike?",answers:["The umpire is being mean","The pitch went through the strike zone — over home plate between your knees and chest","All pitches are strikes","Because you didn't swing hard enough last time"],correct:1,explain:"The strike zone is over home plate, from about your knees to your chest. Pitches through that zone without a swing = called strike!",anim(){addYou(P.home);setTimeout(()=>{addBadge(200,260,'STRIKE ZONE','#f5a623',0);addBadge(200,290,'KNEES → CHEST','#f5a623',400)},500)}},
+{text:"You're sitting on the bench this inning. What's your job?",answers:["Nothing — just wait","Be a good teammate: cheer, count outs, stay ready","Be mad you're not playing","Do homework"],correct:1,explain:"Bench players have an important job! Cheer, keep track of outs, and stay focused. Coaches notice great attitudes!",anim(){addBadge(200,183,'📣 CHEER LOUD!','#2dd4a0',500)}},
+{text:"Your coach tells you to bunt. What is a bunt?",answers:["Swinging as hard as you can","Holding the bat out and gently tapping the ball so it rolls a short distance","Hitting the ball backward","Throwing the bat at the ball"],correct:1,explain:"A bunt is holding the bat still and letting the ball hit it softly. Slide your top hand up the bat (fingers behind it!) and angle it where you want.",anim(){addYou(P.home);setTimeout(()=>{addBadge(200,280,'🤏 SOFT TAP!','#2dd4a0',0)},500)}}
+],
+
+pitcher: [
+{text:"You're the pitcher. The batter hits a ground ball right back at you! What do you do?",answers:["Duck out of the way","Field the ball and throw to 1st base","Let someone else get it","Run to the dugout"],correct:1,explain:"The pitcher is one of the closest fielders! If the ball comes to you, field it and throw to 1st for an easy out.",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.pitcher,500,0,10)},400);setTimeout(()=>{addArrow(P.pitcher,P.b1,'#2dd4a0',false,0);glow('base1','green')},1100)}},
+{text:"Runner on 3rd. The ball gets past the catcher. What should you (pitcher) do?",answers:["Stay on the mound","Run to cover home plate!","Run to get the ball","Yell at the catcher"],correct:1,explain:"When the ball gets past the catcher, the pitcher sprints to home plate! Be ready to catch the throw and tag the runner.",anim(){addAllFielders(['P']);addYou(P.pitcher);addRunner(P.b3,'R');setTimeout(()=>{animBall(P.pitcher,P.behindHome,400,0,0);addBadge(200,355,'PASSED BALL!','#ff6b6b',300)},400);setTimeout(()=>{addArrow(P.pitcher,P.home,'#2dd4a0',true,0);glow('homeP','green');addBadge(200,290,'COVER HOME!','#2dd4a0',200)},1100)}},
+{text:"The batter hits a hard line drive right at your face! What should you do?",answers:["Catch it with your bare hand","Get your glove up to protect yourself!","Close your eyes","Turn your back"],correct:1,explain:"Keep your glove up and ready after you pitch! A line drive back at the pitcher comes fast. Glove up protects you — and you might catch it!",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.pitcher,350,0,5);addBadge(P.pitcher.x,P.pitcher.y-30,'🧤 GLOVE UP!','#2dd4a0',300)},500)}},
+{text:"Batter bunts, ball rolling toward you. Nobody on base. Where do you throw?",answers:["Throw to 2nd base","Pick it up and throw to 1st base","Run it back to the mound","Kick it to the catcher"],correct:1,explain:"On a bunt with nobody on, grab the ball and throw to 1st! Hustle — every second counts.",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:200,y:240},400,0,3)},400);setTimeout(()=>{addArrow({x:200,y:240},P.b1,'#2dd4a0',false,0);glow('base1','green')},1000)}},
+{text:"The 1st baseman fields a ground ball far from the base. What should you (pitcher) do?",answers:["Stay on the mound","Run to 1st base to take the throw!","Run to 2nd base","Go to the dugout"],correct:1,explain:"When the 1st baseman is off the bag, the pitcher runs to cover 1st! This is one of the pitcher's most important jobs.",anim(){addAllFielders(['P','1B']);addYou(P.pitcher);addFielder({x:340,y:210},'1B');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:340,y:210},500,0,10)},400);setTimeout(()=>{addArrow(P.pitcher,P.b1,'#2dd4a0',true,0);glow('base1','green');addBadge(P.b1.x+5,P.b1.y-25,'COVER 1ST!','#2dd4a0',200)},1100)}},
+{text:"After you pitch the ball, where should your glove be?",answers:["Hanging at your side","Up and ready in front of you, in fielding position","Behind your back","On the ground"],correct:1,explain:"After every pitch, get your glove up and ready! You're the closest infielder to the batter — be ready for anything.",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{addBadge(P.pitcher.x,P.pitcher.y-30,'🧤 GLOVE UP!','#2dd4a0',0);addBadge(P.pitcher.x,P.pitcher.y+30,'EVERY PITCH!','#f5a623',400)},500)}},
+{text:"Runner on 1st. Ground ball comes to you (pitcher). Where should you look first?",answers:["Throw to 1st base","Throw to 3rd base","Look to 2nd base first — you might get the lead runner!","Hold the ball"],correct:2,explain:"With a runner on 1st, look to 2nd first! If a teammate is covering and you have time, throw there. If not, throw to 1st for the sure out.",anim(){addAllFielders(['P']);addYou(P.pitcher);addRunner(P.b1,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.pitcher,500,0,10)},400);setTimeout(()=>{addArrow(P.pitcher,P.b2,'#2dd4a0',false,0);glow('base2','green');addBadge(P.b2.x+30,P.b2.y,'👀 LOOK HERE 1ST','#2dd4a0',200)},1100)}},
+{text:"Ball hit to outfield, outfielder throwing to 3rd. You're not in the play. What should you do?",answers:["Stand on the mound and watch","Move behind 3rd base to back up the throw!","Run to 1st base","Sit down"],correct:1,explain:"When you're not in the play, back up the base where the throw is going! If it gets past, you're there to stop it.",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{animBall(P.lf,P.b3,700,0,30)},400);setTimeout(()=>{addArrow(P.pitcher,{x:40,y:200},'#2dd4a0',true,0);addBadge(40,220,'BACK UP!','#2dd4a0',200)},1200)}},
+{text:"Popup going straight up, right above the pitcher's circle. Who should catch it?",answers:["The catcher always gets popups","YOU — call 'I GOT IT!' and catch with two hands","Let it drop","The 1st baseman should run over"],correct:1,explain:"If the popup is above you, it's YOUR ball! Call it loud, get under it, two hands, squeeze!",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:200,y:160},700,0,100);addBadge(200,140,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"Nothing is happening — the batter keeps fouling. What should you do?",answers:["Daydream about snacks","Stay focused! Know outs and runners","Talk to the 2nd baseman","Sit on the mound"],correct:1,explain:"Even when it's slow, stay focused! Know how many outs, who's on base, and where you'll throw if the ball comes to you.",anim(){addAllFielders(['P']);addYou(P.pitcher);setTimeout(()=>{addBadge(200,140,'🧠 STAY FOCUSED','#2dd4a0',0);addBadge(200,220,'OUTS? RUNNERS?','#f5a623',400)},500)}}
+],
+
+catcher: [
+{text:"The pitcher is about to pitch. How should you be positioned as catcher?",answers:["Standing straight up","In a low squat with your glove up as a target","Sitting on the ground","Leaning against the backstop"],correct:1,explain:"Catchers squat low behind home plate. Hold your glove up as a big target! Keep your throwing hand behind your back or leg.",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{addBadge(P.catcher.x,P.catcher.y-25,'🎯 BIG TARGET!','#2dd4a0',0);addBadge(P.catcher.x,P.catcher.y+20,'SQUAT LOW','#f5a623',400)},500)}},
+{text:"The pitch bounces in the dirt before reaching you! What should you do?",answers:["Jump out of the way","Drop to your knees and block it with your body!","Try to catch it one-handed","Let it go — bad pitch"],correct:1,explain:"A catcher's most important job is keeping the ball in front! Drop to your knees, glove between legs, body like a wall.",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{animBall(P.pitcher,{x:200,y:330},400,0,0);addBadge(200,310,'🧱 BLOCK IT!','#2dd4a0',300)},500)}},
+{text:"A runner on 1st is heading to 2nd. You have the ball. Where do you throw?",answers:["Back to the pitcher","Throw to 2nd base!","Throw to 3rd","Hold the ball"],correct:1,explain:"If a runner is heading to 2nd, throw there! Get up quickly, step toward 2nd, and throw strong.",anim(){addAllFielders(['C']);addYou(P.catcher);addRunner(P.b1,'R');setTimeout(()=>{addArrow(P.b1,P.b2,'#ff6b6b',true,0);addArrow(P.catcher,P.b2,'#2dd4a0',false,300);glow('base2','green');addBadge(P.b2.x+30,P.b2.y,'🎯 THROW!','#2dd4a0',500)},500)}},
+{text:"Batter bunts, ball rolls a few feet in front of home plate. Nobody else is close. What do you do?",answers:["Wait for the pitcher","Jump up, grab it, throw to 1st!","Kick it to 3rd baseman","Tag home plate"],correct:1,explain:"If the bunt is right in front of you, it's YOUR ball! Rip off your mask, grab the ball, throw to 1st!",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:200,y:280},300,0,3)},400);setTimeout(()=>{addArrow({x:200,y:280},P.b1,'#2dd4a0',false,0);glow('base1','green')},900)}},
+{text:"The batter swings and the ball ticks off the bat straight back to you. What happens?",answers:["That's a foul ball — ignore it","If you catch it, it's a strike! Squeeze tight!","Dodge it","Throw to 1st base"],correct:1,explain:"A foul tip that you catch counts as a strike! If it's strike 3, the batter is out! Always squeeze your glove.",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{addBadge(P.catcher.x,P.catcher.y-25,'✊ SQUEEZE!','#2dd4a0',0);addBadge(P.catcher.x,P.catcher.y+20,'STRIKE!','#f5a623',400)},500)}},
+{text:"A runner is coming home from 3rd! A teammate throws to you at home. What do you do?",answers:["Step on home plate","Catch the ball and TAG the runner before they touch home!","Throw to 1st base","Get out of the way"],correct:1,explain:"At home plate you must TAG the runner — just stepping on the plate isn't enough! Catch, hold tight, touch the runner with your glove.",anim(){addAllFielders(['C']);addYou(P.catcher);addRunner(P.b3,'R');setTimeout(()=>{addArrow(P.b3,P.home,'#ff6b6b',true,0);animBall(P.f3b,P.catcher,600,200,20);addBadge(P.catcher.x,P.catcher.y-25,'🏷️ TAG!','#2dd4a0',600)},500)}},
+{text:"Batter swings and misses. No runners on base. What do you do?",answers:["Roll the ball back","Stand up and make a nice throw back to the pitcher","Walk it to the pitcher","Keep the ball"],correct:1,explain:"After every pitch, throw it back to the pitcher — right at their chest! Keeps the game moving.",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{addArrow(P.catcher,P.pitcher,'#2dd4a0',false,0);addBadge(200,250,'👉 BACK TO PITCHER','#2dd4a0',200)},500)}},
+{text:"Popup behind home plate. You and the 1st baseman are both going for it. What do you do?",answers:["Let the 1st baseman always take it","Call 'I GOT IT!' — catcher is the boss near home","Both try to catch it","Let it drop"],correct:1,explain:"The catcher is the boss of popups near home! Rip off your mask, find the ball, yell 'I GOT IT!'",anim(){addAllFielders(['C']);addYou(P.catcher);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:200,y:340},700,0,80);addBadge(200,320,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"The pitch gets past you! Runner on 2nd. What do you do?",answers:["Wait for someone else","Spin around, grab the ball, and check 3rd base!","Yell at the pitcher","Take your mask off first"],correct:1,explain:"Every second counts! Spin around, grab the ball, check if the runner is heading to 3rd. If so, throw there!",anim(){addAllFielders(['C']);addYou(P.catcher);addRunner(P.b2,'R');setTimeout(()=>{animBall(P.pitcher,P.behindHome,400,0,0);addBadge(200,355,'⚡ QUICK!','#ff6b6b',300)},400);setTimeout(()=>{addArrow(P.b2,P.b3,'#ff6b6b',true,0);addBadge(P.catcher.x,P.catcher.y-25,'SPIN & THROW!','#2dd4a0',200)},1100)}},
+{text:"Coach says you're catching. What do you put on BEFORE going behind the plate?",answers:["Just a glove","Helmet/mask, chest protector, shin guards — ALL of them!","Just the helmet","Shin guards only"],correct:1,explain:"Catchers wear ALL their gear every time! Mask, chest protector, shin guards. Never catch without full gear!",anim(){addYou(P.catcher);setTimeout(()=>{addBadge(200,310,'😷 MASK','#f472b6',0);addBadge(200,330,'🦺 CHEST','#f472b6',300);addBadge(200,350,'🦵 SHINS','#f472b6',600)},500)}}
+],
+
+firstbase: [
+{text:"The shortstop fielded a grounder and is throwing to you at 1st. What should you do?",answers:["Stand in the middle of the basepath","Foot on the base, stretch toward the throw, and catch!","Run toward the shortstop","Step off the base"],correct:1,explain:"Keep one foot on 1st base and stretch toward the throw! Touch the base + catch the ball = batter is OUT!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall(P.ss,P.b1,600,0,20);glow('base1','green');addBadge(P.b1.x+5,P.b1.y+30,'🦶 FOOT ON BASE!','#2dd4a0',200)},500)}},
+{text:"The 3rd baseman's throw is in the dirt! What do you do?",answers:["Jump out of the way","Stay on base, get low, and scoop it out of the dirt","Let it go past","Yell at the 3rd baseman"],correct:1,explain:"Low throws happen a lot! Stay on base, bend low, and scoop it. Saving bad throws is one of the best things a 1st baseman can do!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall(P.f3b,{x:P.b1.x,y:P.b1.y+10},600,0,-5);glow('base1','yellow');addBadge(P.b1.x+5,P.b1.y+30,'⬇️ SCOOP!','#2dd4a0',400)},500)}},
+{text:"Ground ball hit right to you at 1st. Nobody on base. What do you do?",answers:["Throw to 2nd base","Field the ball and step on 1st base yourself!","Throw to the pitcher","Wait for the batter"],correct:1,explain:"Ball comes to you at 1st? Pick it up and step on the base! Easiest out in softball — no throw needed!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f1b,600,0,10)},400);setTimeout(()=>{glow('base1','green');addBadge(P.b1.x+5,P.b1.y+30,'STEP ON IT!','#2dd4a0',0)},1200)}},
+{text:"You field a ground ball far from 1st base. What do you do?",answers:["Run all the way back to 1st","Throw or flip to the pitcher covering 1st base!","Hold the ball","Throw to 2nd"],correct:1,explain:"When you're far from the bag, the pitcher should be running to cover 1st! Toss them the ball near the base. Teamwork!",anim(){addAllFielders(['1B','P']);addYou({x:340,y:210});addFielder(P.pitcher,'P');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:340,y:210},600,0,10)},400);setTimeout(()=>{addArrow({x:340,y:210},P.b1,'#2dd4a0',false,0);addArrow(P.pitcher,P.b1,'#f5a623',true,200);glow('base1','green');addBadge(P.b1.x+5,P.b1.y-25,'PITCHER COVERS!','#2dd4a0',300)},1200)}},
+{text:"There's a runner on 1st between pitches. Where should you stand?",answers:["Way out near 2nd base","Close to 1st base so the runner can't wander far","At home plate","Doesn't matter"],correct:1,explain:"Stand close to 1st base when there's a runner! In coach pitch they can't leave until the ball is hit, but being close helps you make plays.",anim(){addAllFielders(['1B']);addYou(P.f1b);addRunner(P.b1,'R');setTimeout(()=>{glow('base1','yellow');addBadge(P.f1b.x+10,P.f1b.y-25,'STAY CLOSE!','#2dd4a0',0)},500)}},
+{text:"Popup in foul territory near 1st base. What do you do?",answers:["Let it drop — it's foul","Call 'I GOT IT!' and catch it — it's an out!","Run away","Wait for outfielder"],correct:1,explain:"A caught foul popup is an OUT! Call it, get under it, two hands, squeeze! Free outs are the best!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.foulR,700,0,70);addBadge(P.foulR.x-20,P.foulR.y-25,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"Double play! Ball thrown to 2nd for one out, now the shortstop is throwing to you at 1st. What do you do?",answers:["Step off the base","Foot on the base, catch the throw — that's TWO outs!","Throw to home","Duck"],correct:1,explain:"Same as any throw to 1st — foot on base, stretch, catch. But this time it's two outs on one play!",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall(P.f2b,P.b2,400,0,10);addBadge(P.b2.x,P.b2.y+25,'OUT #1','#2dd4a0',300)},400);setTimeout(()=>{animBall(P.b2,P.b1,500,0,20);glow('base1','green');addBadge(P.b1.x+5,P.b1.y+30,'OUT #2!','#2dd4a0',200)},1200)}},
+{text:"The throw from the shortstop sails over your head! What do you do?",answers:["Just stand on the base","Leave the base and go get the ball fast!","Wait for the outfielder","Throw your glove at it"],correct:1,explain:"When a throw gets past, forget the base and get the ball! The batter is safe, so now keep them from taking extra bases.",anim(){addAllFielders(['1B']);addYou(P.f1b);setTimeout(()=>{animBall(P.ss,{x:370,y:160},500,0,30);addBadge(370,140,'OVERTHROW!','#ff6b6b',400)},400);setTimeout(()=>{addArrow(P.f1b,{x:370,y:160},'#2dd4a0',true,0);addBadge(370,185,'🏃‍♀️ GO GET IT!','#2dd4a0',200)},1200)}}
+],
+
+middle: [
+{text:"You're at shortstop. Ground ball to you, nobody on base. Where do you throw?",answers:["Throw to 2nd base","Throw to 1st base","Throw to 3rd base","Run it to 1st yourself"],correct:1,explain:"Nobody on base, ground ball? Throw to 1st! Set your feet and make a strong throw.",anim(){addAllFielders(['SS']);addYou(P.ss);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.ss,600,0,10)},400);setTimeout(()=>{addArrow(P.ss,P.b1,'#2dd4a0',false,0);glow('base1','green')},1200)}},
+{text:"You're the 2nd baseman. Runner on 1st. Ground ball to you. Where do you go?",answers:["Throw to 1st","Throw to 3rd","Throw home","Step on 2nd base for the force out!"],correct:3,explain:"Runner on 1st, you're close to 2nd? Step on the bag! It's a force play — the runner HAS to come to 2nd.",anim(){addAllFielders(['2B']);addYou(P.f2b);addRunner(P.b1,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f2bPos,600,0,10)},400);setTimeout(()=>{addArrow(P.f2b,P.b2,'#2dd4a0',false,0);glow('base2','green');addBadge(P.b2.x+30,P.b2.y,'FORCE!','#2dd4a0',200)},1200)}},
+{text:"You're the shortstop. Runner on 1st. Ground ball to your left. Where do you throw?",answers:["Throw to 1st","Throw to the 2nd baseman at 2nd for the force out!","Throw home","Hold the ball"],correct:1,explain:"With a runner on 1st, get the ball to 2nd! The 2nd baseman should be covering. A quick flip gets the lead runner out.",anim(){addAllFielders(['SS']);addYou(P.ss);addRunner(P.b1,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:120,y:145},600,0,10)},400);setTimeout(()=>{addArrow(P.ss,P.b2,'#2dd4a0',false,0);glow('base2','green')},1200)}},
+{text:"Popup between you (SS) and the 3rd baseman. What should you do?",answers:["Both go for it","Call 'I GOT IT!' — the shortstop is usually the boss of infield popups","Let it drop","Run to the dugout"],correct:1,explain:"The shortstop is usually the captain for infield popups! Call it loud if you can get there. If the 3B calls it, let them have it.",anim(){addAllFielders(['SS']);addYou(P.ss);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:110,y:155},700,0,70);addBadge(110,130,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"A runner on 1st is heading to 2nd. Who covers 2nd base?",answers:["Nobody","You or the 2nd baseman — whoever is closest","The pitcher","The outfielder"],correct:1,explain:"Either the shortstop or 2nd baseman gets to the bag! Talk before the play about who covers. Someone HAS to be there.",anim(){addAllFielders(['SS','2B']);addYou(P.ss);addFielder(P.f2b,'2B');addRunner(P.b1,'R');setTimeout(()=>{addArrow(P.b1,P.b2,'#ff6b6b',true,0);glow('base2','yellow');addBadge(P.b2.x,P.b2.y+25,'WHO COVERS?','#f5a623',300)},500)}},
+{text:"Ball hit deep to left field. You're the shortstop and the cutoff person. What do you do?",answers:["Get out of the way","Line up between outfielder and the base, catch it, and throw!","Let the ball roll in","Run to the outfield"],correct:1,explain:"The cutoff person lines up between the outfielder and the base. Catch, turn, throw! You're a relay station that gets the ball there faster.",anim(){addAllFielders(['SS']);addYou({x:130,y:150});setTimeout(()=>{animBall(P.lf,{x:130,y:150},700,0,30)},400);setTimeout(()=>{addArrow({x:130,y:150},P.b3,'#2dd4a0',false,0);addBadge(130,130,'⚡ RELAY!','#2dd4a0',200)},1300)}},
+{text:"The pitcher is about to pitch. How should you (2nd baseman) stand?",answers:["Standing straight up, hands in pockets","Bent knees, glove down and open, on the balls of your feet","Sitting on the ground","Leaning on your knees"],correct:1,explain:"Ready position every pitch! Knees bent, glove out low, weight on your toes. This lets you react quickly!",anim(){addAllFielders(['2B']);addYou(P.f2b);setTimeout(()=>{addBadge(P.f2b.x,P.f2b.y-25,'🦵 KNEES BENT','#2dd4a0',0);addBadge(P.f2b.x,P.f2b.y+25,'🧤 GLOVE READY','#2dd4a0',400)},500)}},
+{text:"A ball is slowly rolling toward you at shortstop. What do you do?",answers:["Wait for it","Run toward it, scoop, throw to 1st on the run!","Let the 3rd baseman get it","Yell at the ball"],correct:1,explain:"On a slow roller, charge it! Don't wait — run forward, scoop it up, and throw. Waiting means the batter beats you.",anim(){addAllFielders(['SS']);addYou(P.ss);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:150,y:190},700,0,3)},400);setTimeout(()=>{addArrow(P.ss,{x:150,y:190},'#2dd4a0',true,0);addBadge(150,170,'⚡ CHARGE!','#2dd4a0',200)},1200)}},
+{text:"Runner sliding into 2nd. No force play. The throw comes to you. What do you do?",answers:["Just step on the base","Catch the ball and tag the runner before they reach the base","Throw to 1st","Drop the ball"],correct:1,explain:"No force play = you must TAG the runner! Catch, swipe down, hold on tight!",anim(){addAllFielders(['SS']);addYou(P.b2);addRunner({x:290,y:150},'R');setTimeout(()=>{animBall(P.rf,P.b2,600,0,20);glow('base2','yellow');addBadge(P.b2.x+30,P.b2.y,'🏷️ TAG!','#2dd4a0',400)},500)}},
+{text:"Ground ball hit to the shortstop. You're the 2nd baseman. What should you do?",answers:["Just watch","Move toward 2nd base to cover or be in position to help","Run to 1st","Go to the outfield"],correct:1,explain:"When the ball goes to another infielder, move to where you're needed! Cover 2nd if there's a runner, or back up the throw to 1st.",anim(){addAllFielders(['2B','SS']);addYou(P.f2b);addFielder(P.ss,'SS');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.ss,600,0,10)},400);setTimeout(()=>{addArrow(P.f2b,P.b2,'#2dd4a0',true,0);glow('base2','yellow');addBadge(P.f2b.x+30,P.f2b.y,'COVER!','#2dd4a0',200)},1200)}}
+],
+
+thirdbase: [
+{text:"Ground ball right to you at 3rd. Nobody on base. Where do you throw?",answers:["Step on 3rd base","Throw to 1st base! It's a long throw — step and throw hard","Throw to 2nd","Hold the ball"],correct:1,explain:"3rd to 1st is one of the longest infield throws! Field cleanly, set your feet, throw strong. Practice this a lot!",anim(){addAllFielders(['3B']);addYou(P.f3b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f3b,600,0,10)},400);setTimeout(()=>{addArrow(P.f3b,P.b1,'#2dd4a0',false,0);glow('base1','green');addBadge(270,190,'LONG THROW!','#f5a623',200)},1200)}},
+{text:"Batter bunts down the 3rd base line. Nobody on base. What do you do?",answers:["Wait for it to come to you","Charge in hard, pick it up, throw to 1st!","Let the pitcher get it","Kick it foul"],correct:1,explain:"On a bunt, be FAST! Charge the ball, scoop with two hands, fire to 1st. You and the pitcher are the main bunt defenders.",anim(){addAllFielders(['3B']);addYou(P.f3b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:100,y:250},500,0,3)},400);setTimeout(()=>{addArrow(P.f3b,{x:100,y:250},'#2dd4a0',true,0);addBadge(100,230,'⚡ CHARGE!','#2dd4a0',200)},1000);setTimeout(()=>{addArrow({x:100,y:250},P.b1,'#2dd4a0',false,0);glow('base1','green')},1600)}},
+{text:"Runner on 2nd. Ground ball hit to you at 3rd. Runner heading to 3rd. What do you do?",answers:["Throw to 1st","Step on 3rd base! The runner is forced here","Throw to 2nd","Hold the ball"],correct:1,explain:"If the runner is forced to 3rd (runners behind them), step on the base! Force out — no tag needed. Then maybe throw to 1st for two!",anim(){addAllFielders(['3B']);addYou(P.f3b);addRunner(P.b2,'R');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f3b,600,0,10)},400);setTimeout(()=>{glow('base3','green');addBadge(P.b3.x,P.b3.y+30,'STEP ON IT!','#2dd4a0',0);addArrow(P.b2,P.b3,'#ff6b6b',true,200);addBadge(P.run23.x,P.run23.y,'FORCED!','#f5a623',400)},1200)}},
+{text:"A hard line drive is hit right at you at 3rd base! What do you do?",answers:["Close eyes and duck","Get your glove up and try to catch it! Protect yourself first","Jump out of the way","Wait for it to bounce"],correct:1,explain:"3rd base is called 'the hot corner' because hard hits come fast! Glove up, protect yourself, and you might catch it for an out!",anim(){addAllFielders(['3B']);addYou(P.f3b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.f3b,350,0,5);addBadge(P.f3b.x,P.f3b.y-30,'🧤 GLOVE UP!','#2dd4a0',300)},500)}},
+{text:"Popup in foul territory near 3rd base. What do you do?",answers:["Let it drop — it's foul","Call 'I GOT IT!' and catch it — it's still an out!","Kick it fair","Let the left fielder get it"],correct:1,explain:"Caught foul popup = OUT! Call it, get under it, two hands, squeeze! Free outs are the best!",anim(){addAllFielders(['3B']);addYou(P.f3b);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.foulL,700,0,70);addBadge(P.foulL.x+20,P.foulL.y-25,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"Ground ball hit between you and the shortstop. You can both reach it. What should happen?",answers:["Both try to field it","One of you calls 'I GOT IT!' — whoever has the better angle","Both back away","Coach decides mid-play"],correct:1,explain:"Communicate! The player with the easier throw to 1st should take it. Call it loud!",anim(){addAllFielders(['3B','SS']);addYou(P.f3b);addFielder(P.ss,'SS');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:112,y:160},600,0,10)},400);setTimeout(()=>{addBadge(112,140,'📢 CALL IT!','#2dd4a0',0)},1200)}},
+{text:"Runner trying to go from 2nd to 3rd. Outfielder throws to you. No force. What do you do?",answers:["Step on the base","Catch the ball and tag the runner before they touch the base","Throw home","Hold ball up for umpire"],correct:1,explain:"No force = TAG the runner! Get in front of the base, catch, swipe down, hold tight!",anim(){addAllFielders(['3B']);addYou(P.f3b);addRunner({x:130,y:130},'R');setTimeout(()=>{animBall(P.rf,P.b3,700,0,25);glow('base3','yellow');addBadge(P.b3.x,P.b3.y+30,'🏷️ TAG!','#2dd4a0',400)},500)}},
+{text:"Your team is batting. Coach asks you to stand in the 3rd base coach's box. What's your job?",answers:["Stand there and do nothing","Help runners — tell them STOP or KEEP GOING","Make fun of the other team","Sit in the grass"],correct:1,explain:"The 3rd base coach tells runners what to do! Yell 'STOP!' with hands up or wave them home. Important job!",anim(){addBadge(P.b3.x,P.b3.y+30,'🛑 STOP!','#ff6b6b',500);addBadge(P.b3.x,P.b3.y+50,'🔄 OR GO!','#2dd4a0',800)}}
+],
+
+outfield: [
+{text:"You're in right field and a fly ball is coming at you! What's the right way to catch it?",answers:["Catch it basket style, one hand","Get under it, glove up, catch with two hands above your head","Wait for it to bounce","Close eyes, hold glove out"],correct:1,explain:"Get under the ball, glove up, use your other hand to squeeze on top! Catching above your head lets you see better and throw quicker.",anim(){addAllFielders(['RF']);addYou(P.rf);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.rf,900,0,80);addBadge(P.rf.x,P.rf.y-25,'🧤 TWO HANDS!','#2dd4a0',600)},500)}},
+{text:"Ball hit WAY over your head in center field! What do you do?",answers:["Stand there and watch","Turn and run back toward where it's going, then look up","Run forward","Wait for it to stop rolling"],correct:1,explain:"Don't backpedal — you'll trip! Turn your body toward where the ball is going and RUN. Then look up to find it.",anim(){addAllFielders(['CF']);addYou(P.cf);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.deepCF,900,0,100)},400);setTimeout(()=>{addArrow(P.cf,P.deepCF,'#2dd4a0',true,0);addBadge(P.deepCF.x,P.deepCF.y+25,'🏃‍♀️ DROP BACK!','#2dd4a0',200)},1400)}},
+{text:"Ground ball rolling toward you in left field. What's most important?",answers:["Pick it up whenever","Get in front of it, one knee down to block, pick up quickly!","Wait for it to stop","Kick it in"],correct:1,explain:"Get in front of the ball! One knee behind it creates a wall. If you miss with your glove, your body stops it.",anim(){addAllFielders(['LF']);addYou(P.lf);setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.lf,700,0,15)},400);setTimeout(()=>{addBadge(P.lf.x,P.lf.y-25,'🧱 BLOCK IT!','#2dd4a0',0);addBadge(P.lf.x,P.lf.y+25,'ONE KNEE!','#f5a623',400)},1300)}},
+{text:"You fielded a single in center field. Nobody was on base. Batter is at 1st. Where do you throw?",answers:["Throw to home plate","Throw to 2nd base or your cutoff person","Hold the ball","Throw it as high as you can"],correct:1,explain:"On a single, get the ball to 2nd or your cutoff person. Quick throws keep runners from taking extra bases!",anim(){addAllFielders(['CF']);addYou(P.cf);addRunner(P.b1,'B');setTimeout(()=>{addArrow(P.cf,P.b2,'#2dd4a0',false,0);glow('base2','green');addBadge(P.b2.x+30,P.b2.y,'🎯 CUTOFF!','#2dd4a0',200)},500)}},
+{text:"Runner on 3rd heading home after a hit. You field the ball in left field. Where do you throw?",answers:["Throw to 1st","Throw home (to your cutoff person in line with home)!","Throw to 3rd","Hold the ball"],correct:1,explain:"Runner heading home? Throw toward home! Hit your cutoff person who should be lined up between you and the plate.",anim(){addAllFielders(['LF']);addYou(P.lf);addRunner(P.b3,'R');setTimeout(()=>{addArrow(P.b3,P.home,'#ff6b6b',true,0);addArrow(P.lf,P.cutLF,'#2dd4a0',false,200);addBadge(P.cutLF.x,P.cutLF.y-20,'🎯 CUTOFF!','#2dd4a0',400);glow('homeP','green')},500)}},
+{text:"Ground ball hit to the 2nd baseman, she's throwing to 1st. You're in right field. What do you do?",answers:["Stand and watch","Run toward 1st to back up the throw","Run to 2nd","Run to the dugout"],correct:1,explain:"Outfielders ALWAYS back up throws! Move toward the base where the ball is going. If it gets past, you're there!",anim(){addAllFielders(['RF']);addYou(P.rf);setTimeout(()=>{animBall(P.f2b,P.b1,500,0,15)},400);setTimeout(()=>{addArrow(P.rf,P.b1,'#2dd4a0',true,0);addBadge(P.rf.x-30,P.rf.y+20,'🏃‍♀️ BACK UP!','#2dd4a0',200)},1000)}},
+{text:"Fly ball between you (center field) and the right fielder. Who should catch it?",answers:["Whoever gets there first — don't call it","Center field is the boss — call it if you can!","Let it drop","Both go for it"],correct:1,explain:"Center field is the captain of the outfield! Call 'I GOT IT!' if you can reach it. Corner outfielders back off when center calls it.",anim(){addAllFielders(['CF','RF']);addYou(P.cf);addFielder(P.rf,'RF');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},{x:265,y:60},800,0,70);addBadge(265,40,'📢 I GOT IT!','#2dd4a0',500)},500)}},
+{text:"Runner rounds 2nd and goes to 3rd. You're in right field. Where do you throw?",answers:["Throw to 1st","Throw to 2nd — that's where they came from","Throw to 3rd or your cutoff in line with 3rd","Throw to the pitcher"],correct:2,explain:"Always throw AHEAD of the runner, not behind them! If they're going to 3rd, throw toward 3rd. Throwing behind doesn't help!",anim(){addAllFielders(['RF']);addYou(P.rf);addRunner({x:130,y:140},'R');setTimeout(()=>{addArrow(P.rf,P.b3,'#2dd4a0',false,0);glow('base3','green');addBadge(P.b3.x,P.b3.y+30,'AHEAD!','#2dd4a0',200);addArrow(P.rf,P.b2,'#ff6b6b',true,400);addBadge(P.b2.x+30,P.b2.y,'❌ BEHIND','#ff6b6b',600)},500)}},
+{text:"You caught a fly ball in the outfield. How do you make a long throw to the infield?",answers:["Throw hard from wherever you're standing","Crow hop — quick steps toward target, then step and throw hard","Run all the way to the infield","Roll the ball in"],correct:1,explain:"A 'crow hop' is quick shuffle-steps toward your target. It gets your whole body into the throw so it goes farther and faster!",anim(){addAllFielders(['CF']);addYou(P.cf);setTimeout(()=>{addBadge(P.cf.x,P.cf.y+25,'🦅 CROW HOP!','#2dd4a0',0);addArrow(P.cf,P.b3,'#2dd4a0',false,400)},500)}},
+{text:"Fly ball coming but the sun is right in your eyes! What can you do?",answers:["Close eyes and hope","Use your glove to shade the sun while tracking the ball","Turn your back","Call time out"],correct:1,explain:"Hold your glove up above your eyes like a visor to block the sun! Sunglasses help too. Losing a ball in the sun happens to everyone.",anim(){addAllFielders(['RF']);addYou(P.rf);setTimeout(()=>{addBadge(P.rf.x,P.rf.y-25,'🧤☀️ SHADE IT!','#2dd4a0',0)},500)}},
+{text:"Ball is hit to left field. You're in right field. Nothing for you to do, right?",answers:["Right, just stand there","Wrong! Move toward the infield — be ready to back up","Sit and rest","Run to left field"],correct:1,explain:"Every player should be moving on every play! Even far from the ball, move toward the infield. You might need to back up a throw.",anim(){addAllFielders(['RF','LF']);addYou(P.rf);addFielder(P.lf,'LF');setTimeout(()=>{animBall({x:P.home.x,y:P.home.y-15},P.lf,700,0,30)},400);setTimeout(()=>{addArrow(P.rf,{x:280,y:140},'#2dd4a0',true,0);addBadge(P.rf.x-30,P.rf.y+20,'🏃‍♀️ MOVE IN!','#2dd4a0',200)},1200)}},
+{text:"Your coach says 'play in' or 'play shallow.' What does that mean?",answers:["Move closer to the infield","Move farther back","Move to the left","Sit down"],correct:0,explain:"'Playing in' means moving closer to the infield. The batter might not hit far, or you need to throw quicker. Listen to your coach's positioning!",anim(){addAllFielders(['CF']);addYou(P.cf);setTimeout(()=>{addArrow(P.cf,{x:200,y:100},'#2dd4a0',true,0);addBadge(200,80,'⬆️ PLAY IN!','#2dd4a0',200)},500)}}
+]
+};
+
+/* ═══════════════════════════════════════
+   GAME STATE
+   ═══════════════════════════════════════ */
+let currentQ=0, correctN=0, wrongN=0, activeSet=[], answered=false, lastCat='all';
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+
+/* ═══════════════════════════════════════
+   HOME SCREEN SETUP
+   ═══════════════════════════════════════ */
+function buildHome(){
+  const grid=$('catGrid');
+  const catClasses = {baserunning:'cat-baserunning',safety:'cat-safety',fielding:'cat-fielding',batting:'cat-batting',pitcher:'cat-pitcher',catcher:'cat-catcher',firstbase:'cat-firstbase',middle:'cat-middle',thirdbase:'cat-thirdbase',outfield:'cat-outfield'};
+  Object.keys(CATS).forEach(key=>{
+    const cat=CATS[key];
+    const count=ALL[key].length;
+    const card=document.createElement('div');
+    card.className='cat-card '+(catClasses[key]||'');
+    card.innerHTML=`<div class="cat-card-stripe"></div><span class="cat-card-icon">${cat.icon}</span><div class="cat-card-title">${cat.title}</div><div class="cat-card-count">${count} plays</div>`;
+    card.onclick=()=>startGame(key);
+    grid.appendChild(card);
+  });
+}
+buildHome();
+
+/* ═══════════════════════════════════════
+   GAME FLOW
+   ═══════════════════════════════════════ */
+function startGame(cat){
+  lastCat=cat;
+  currentQ=0;correctN=0;wrongN=0;
+  if(cat==='all'){
+    activeSet=shuffle(Object.values(ALL).flat());
+    $('gameCatLabel').textContent='🎯 All Categories (Random Mix)';
+  } else {
+    activeSet=shuffle(ALL[cat]);
+    $('gameCatLabel').textContent=CATS[cat].label;
+  }
+  showScreen('gameScreen');
+  $('app').scrollTop=0;
+  loadQ();
+}
+
+function goHome(){
+  showScreen('homeScreen');
+  $('app').scrollTop=0;
+}
+
+function loadQ(){
+  answered=false;
+  const s=activeSet[currentQ];
+  const pct=(currentQ/activeSet.length)*100;
+  $('progressFill').style.width=pct+'%';
+  $('progressText').textContent=`Question ${currentQ+1} of ${activeSet.length}`;
+  $('correctCount').textContent=correctN;
+  $('wrongCount').textContent=wrongN;
+
+  // Setup diamond animation
+  clearField();
+  if(s.anim) s.anim();
+
+  $('scenarioText').textContent=s.text;
+
+  const cont=$('answersEl');
+  cont.innerHTML='';
+  const letters=['A','B','C','D'];
+  s.answers.forEach((ans,i)=>{
+    const btn=document.createElement('button');
+    btn.className='answer-btn';
+    btn.innerHTML=`<span class="answer-letter">${letters[i]}</span><span>${ans}</span>`;
+    btn.onclick=()=>pickAnswer(i);
+    cont.appendChild(btn);
+  });
+
+  $('feedbackEl').className='feedback';
+  $('nextBtn').classList.remove('show');
+  $('app').scrollTop=0;
+}
+
+function pickAnswer(idx){
+  if(answered)return;
+  answered=true;
+  const s=activeSet[currentQ];
+  const btns=document.querySelectorAll('.answer-btn');
+  const ok=idx===s.correct;
+  const fb=$('feedbackEl');
+
+  btns.forEach((btn,i)=>{
+    if(i===idx) btn.classList.add(ok?'correct':'wrong');
+    else if(i===s.correct&&!ok) btn.classList.add('reveal-correct');
+    else btn.classList.add('disabled');
+    btn.style.pointerEvents='none';
+  });
+
+  if(ok){correctN++;miniConfetti()}else{wrongN++}
+  $('correctCount').textContent=correctN;
+  $('wrongCount').textContent=wrongN;
+
+  fb.className=ok?'feedback correct-fb show':'feedback wrong-fb show';
+  fb.innerHTML=ok
+    ?`<span class="feedback-icon">⭐</span> That's right!<span class="feedback-explain">${s.explain}</span>`
+    :`<span class="feedback-icon">💡</span> Not quite!<span class="feedback-explain">${s.explain}</span>`;
+
+  const nb=$('nextBtn');
+  nb.textContent=currentQ===activeSet.length-1?'See Results! ⭐':'Next Play ▶';
+  nb.classList.add('show');
+  setTimeout(()=>fb.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function nextQuestion(){
+  currentQ++;
+  if(currentQ>=activeSet.length) showResults();
+  else loadQ();
+}
+
+function showResults(){
+  const total=activeSet.length,pct=Math.round((correctN/total)*100);
+  $('progressFill').style.width='100%';
+  let emoji,title,msg,stars='';
+  if(pct===100){emoji='🏆';title='PERFECT SCORE!';stars='⭐⭐⭐';msg="You're a softball superstar! You know your stuff inside and out!";launchConfetti()}
+  else if(pct>=80){emoji='🎉';title='Awesome!';stars='⭐⭐⭐';msg="Almost perfect! You really know your softball!";launchConfetti()}
+  else if(pct>=60){emoji='🙌';title='Great Job!';stars='⭐⭐';msg="You're getting really good! Play again to try for a perfect score!";launchConfetti()}
+  else if(pct>=40){emoji='👍';title='Nice Try!';stars='⭐';msg="You're learning! Every softball star started as a beginner. Play again!"}
+  else{emoji='💪';title='Keep Practicing!';stars='';msg="Softball has a lot to learn! Play again and you'll get better each time. You've got this!"}
+  $('rEmoji').textContent=emoji;$('rTitle').textContent=title;
+  $('rScore').textContent=`You got ${correctN} out of ${total} correct! (${pct}%)`;
+  $('rStars').textContent=stars;$('rMsg').textContent=msg;
+  showScreen('resultsScreen');
+}
+
+/* ═══════════════════════════════════════
+   CONFETTI
+   ═══════════════════════════════════════ */
+function miniConfetti(){
+  const box=$('confettiBox'),colors=['#ffd93d','#4a90d9','#2dd4a0','#ff6b6b','#f5a623','#a78bfa'];
+  for(let i=0;i<12;i++){const p=document.createElement('div');p.className='confetti-p';
+  p.style.left=Math.random()*100+'%';p.style.background=colors[Math.floor(Math.random()*colors.length)];
+  p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+  p.style.width=(8+Math.random()*8)+'px';p.style.height=(8+Math.random()*8)+'px';
+  p.style.animationDuration=(1.5+Math.random()*1.5)+'s';
+  p.style.animationDelay=(Math.random()*0.5)+'s';
+  box.appendChild(p);setTimeout(()=>p.remove(),3500)}
+}
+function launchConfetti(){
+  const box=$('confettiBox'),colors=['#ffd93d','#4a90d9','#2dd4a0','#ff6b6b','#f5a623','#a78bfa','#ff9ff3','#48dbfb'];
+  for(let i=0;i<50;i++){const p=document.createElement('div');p.className='confetti-p';
+  p.style.left=Math.random()*100+'%';p.style.background=colors[Math.floor(Math.random()*colors.length)];
+  p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+  p.style.width=(8+Math.random()*12)+'px';p.style.height=(8+Math.random()*12)+'px';
+  p.style.animationDuration=(2+Math.random()*2)+'s';p.style.animationDelay=(Math.random()*1)+'s';
+  box.appendChild(p);setTimeout(()=>p.remove(),5000)}
+}
+</script>
+
+</body>
+</html>
