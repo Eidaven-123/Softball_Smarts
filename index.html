@@ -168,6 +168,35 @@ RESULTS SCREEN
 .confetti-p{position:absolute;top:-20px;animation:cFall linear forwards}
 @keyframes cFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
+/* ── Streak badge ── */
+.streak-badge{background:linear-gradient(135deg,#ff6b35,#f7b731);border-radius:10px;padding:4px 10px;display:none;align-items:center;gap:3px;font-weight:800;font-size:0.9rem;color:white}.streak-badge.show{display:flex;animation:popIn 0.3s ease}
+
+/* ── Hint ── */
+.hint-btn{background:none;border:2px dashed var(--blue);border-radius:10px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:800;color:var(--blue);cursor:pointer;margin-top:8px;transition:all 0.15s}
+.hint-btn:disabled{opacity:0.45;cursor:not-allowed;border-color:#bbb;color:#bbb}
+.hint-text{font-size:0.82rem;font-weight:600;color:#3a3fa6;background:#eef3ff;border-radius:8px;padding:8px 12px;margin-top:6px;display:none;border-left:3px solid var(--blue);line-height:1.35}
+.hint-text.show{display:block}
+
+/* ── Timer ── */
+.timer-wrap{width:100%;margin-bottom:4px;display:none}
+.timer-wrap.show{display:block}
+.timer-bar-outer{width:100%;height:8px;background:rgba(255,255,255,0.3);border-radius:10px;overflow:hidden}
+.timer-bar-inner{height:100%;border-radius:10px;transition:width 0.9s linear,background-color 0.5s}
+.timer-text{font-size:0.75rem;font-weight:800;color:rgba(255,255,255,0.85);text-align:right;margin-top:2px}
+
+/* ── Timed mode toggle ── */
+.timed-toggle{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.35);border-radius:var(--radius);padding:10px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.88rem;color:white;cursor:pointer;margin-top:6px;width:100%;transition:all 0.15s}
+.timed-toggle.on{background:rgba(245,166,35,0.3);border-color:var(--orange)}
+.timed-toggle:active{transform:scale(0.97)}
+
+/* ── Category card best score ── */
+.cat-best{font-size:0.68rem;font-weight:800;color:#2dd4a0;margin-top:2px;min-height:14px}
+.cat-trophy{position:absolute;top:6px;right:8px;font-size:0.85rem}
+
+/* ── Personal best banner ── */
+.personal-best{background:linear-gradient(135deg,#ffd93d,#f7b731);border-radius:10px;padding:8px 16px;font-weight:800;font-size:0.9rem;color:#7a5c00;margin-bottom:10px;display:none;text-align:center}
+.personal-best.show{display:block}
+
 /* ── Responsive ── */
 @media(max-height:700px){
 .app-title{font-size:1.6rem}
@@ -208,6 +237,7 @@ RESULTS SCREEN
     </div>
     <div class="cat-grid" id="catGrid"></div>
     <button class="play-all-btn" onclick="startGame('all')">🎯 Play All (Random Mix)</button>
+    <button class="timed-toggle" id="timedToggle" onclick="toggleTimedMode()">⏱ Timed Mode: OFF</button>
   </div>
 </div>
 
@@ -218,6 +248,7 @@ RESULTS SCREEN
     <button class="back-btn" onclick="goHome()">◀ Back</button>
     <div class="game-cat-label" id="gameCatLabel"></div>
     <div class="score-display">
+      <div class="streak-badge" id="streakBadge">🔥<span id="streakCount">2</span></div>
       <div class="score-item"><span class="score-icon">✅</span><span id="correctCount">0</span></div>
       <div class="score-item"><span class="score-icon">❌</span><span id="wrongCount">0</span></div>
     </div>
@@ -225,6 +256,10 @@ RESULTS SCREEN
   <div class="progress-wrap">
     <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressFill" style="width:0%"></div></div>
     <div class="progress-text" id="progressText"></div>
+  </div>
+  <div class="timer-wrap" id="timerWrap">
+    <div class="timer-bar-outer"><div class="timer-bar-inner" id="timerBar" style="width:100%;background:#2dd4a0"></div></div>
+    <div class="timer-text" id="timerText">15s</div>
   </div>
   <div class="diamond-wrap">
     <svg id="dSvg" viewBox="0 0 400 370" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -265,6 +300,8 @@ RESULTS SCREEN
   <div class="scenario-card">
     <div class="scenario-label" id="scenarioLabel">What do you do?</div>
     <div class="scenario-text" id="scenarioText"></div>
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 Hint</button>
+    <div class="hint-text" id="hintText"></div>
   </div>
   <div class="answers" id="answersEl"></div>
   <div class="feedback" id="feedbackEl"></div>
@@ -281,6 +318,7 @@ RESULTS SCREEN
       <div class="results-title" id="rTitle">Great Job!</div>
       <div class="results-score" id="rScore"></div>
       <div class="results-stars" id="rStars"></div>
+      <div class="personal-best" id="personalBest">🏅 New Personal Best!</div>
       <div class="results-message" id="rMsg"></div>
       <div class="results-btns">
         <button class="result-btn secondary" onclick="startGame(lastCat)">Play Again!</button>
@@ -597,6 +635,74 @@ outfield: [
    GAME STATE
    ═══════════════════════════════════════ */
 let currentQ=0, correctN=0, wrongN=0, activeSet=[], answered=false, lastCat='all';
+let streak=0, hintUsed=false, hintsUsed=0, timedMode=false, timerInterval=null, timerSecs=15;
+
+/* ── localStorage helpers ── */
+const LS={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+function getBest(cat){return LS.get('ss_best_'+cat)}
+function saveBest(cat,pct){const p=getBest(cat);if(p===null||pct>p){LS.set('ss_best_'+cat,pct);return true}return false}
+function getPlays(cat){return LS.get('ss_plays_'+cat)||0}
+function incPlays(cat){LS.set('ss_plays_'+cat,getPlays(cat)+1)}
+
+/* ── Timed mode ── */
+function toggleTimedMode(){
+  timedMode=!timedMode;
+  const btn=$('timedToggle');
+  btn.classList.toggle('on',timedMode);
+  btn.textContent=timedMode?'⏱ Timed Mode: ON':'⏱ Timed Mode: OFF';
+}
+function startTimer(){
+  clearTimerInterval();
+  timerSecs=15;
+  if(!timedMode){$('timerWrap').classList.remove('show');return}
+  $('timerWrap').classList.add('show');
+  updateTimerUI();
+  timerInterval=setInterval(()=>{timerSecs--;updateTimerUI();if(timerSecs<=0){clearTimerInterval();if(!answered)pickAnswer(-1)}},1000);
+}
+function clearTimerInterval(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
+function updateTimerUI(){
+  const bar=$('timerBar');
+  bar.style.width=(timerSecs/15*100)+'%';
+  bar.style.background=timerSecs>8?'#2dd4a0':timerSecs>4?'#ffd93d':'#ff6b6b';
+  $('timerText').textContent=timerSecs+'s';
+}
+
+/* ── Streak ── */
+function updateStreak(correct){
+  if(correct)streak++;else streak=0;
+  const badge=$('streakBadge');
+  if(streak>=2){$('streakCount').textContent=streak;badge.classList.add('show')}
+  else badge.classList.remove('show');
+}
+
+/* ── Hint ── */
+function showHint(){
+  if(hintUsed)return;
+  hintUsed=true;hintsUsed++;
+  const s=activeSet[currentQ];
+  const exp=s.explain;
+  const end=exp.search(/[.!]/);
+  const hint=end>0?exp.substring(0,end+1):exp.substring(0,60)+'...';
+  $('hintText').textContent='💡 '+hint;
+  $('hintText').classList.add('show');
+  $('hintBtn').disabled=true;
+  $('hintBtn').textContent='💡 Hint used';
+}
+
+/* ── Refresh category card best scores ── */
+function refreshCardBests(){
+  Object.keys(CATS).forEach(key=>{
+    const el=document.getElementById('best_'+key);
+    if(!el)return;
+    const b=getBest(key);
+    el.textContent=b!==null?'Best: '+b+'%':'';
+    const tr=document.getElementById('trophy_'+key);
+    if(tr)tr.textContent=b!==null&&b>=80?'🏆':'';
+  });
+}
 
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
@@ -612,10 +718,11 @@ function buildHome(){
     const count=ALL[key].length;
     const card=document.createElement('div');
     card.className='cat-card '+(catClasses[key]||'');
-    card.innerHTML=`<div class="cat-card-stripe"></div><span class="cat-card-icon">${cat.icon}</span><div class="cat-card-title">${cat.title}</div><div class="cat-card-count">${count} plays</div>`;
+    card.innerHTML=`<div class="cat-card-stripe"></div><span class="cat-card-icon">${cat.icon}</span><div class="cat-card-title">${cat.title}</div><div class="cat-card-count">${count} plays</div><div class="cat-best" id="best_${key}"></div><span class="cat-trophy" id="trophy_${key}"></span>`;
     card.onclick=()=>startGame(key);
     grid.appendChild(card);
   });
+  refreshCardBests();
 }
 buildHome();
 
@@ -624,7 +731,7 @@ buildHome();
    ═══════════════════════════════════════ */
 function startGame(cat){
   lastCat=cat;
-  currentQ=0;correctN=0;wrongN=0;
+  currentQ=0;correctN=0;wrongN=0;streak=0;hintsUsed=0;updateStreak(false);
   if(cat==='all'){
     activeSet=shuffle(Object.values(ALL).flat());
     $('gameCatLabel').textContent='🎯 All Categories (Random Mix)';
@@ -638,12 +745,16 @@ function startGame(cat){
 }
 
 function goHome(){
+  clearTimerInterval();
   showScreen('homeScreen');
   $('app').scrollTop=0;
 }
 
 function loadQ(){
-  answered=false;
+  answered=false;hintUsed=false;
+  $('hintBtn').disabled=false;$('hintBtn').textContent='💡 Hint';
+  $('hintText').classList.remove('show');
+  startTimer();
   const s=activeSet[currentQ];
   const pct=(currentQ/activeSet.length)*100;
   $('progressFill').style.width=pct+'%';
@@ -676,6 +787,7 @@ function loadQ(){
 function pickAnswer(idx){
   if(answered)return;
   answered=true;
+  clearTimerInterval();
   const s=activeSet[currentQ];
   const btns=document.querySelectorAll('.answer-btn');
   const ok=idx===s.correct;
@@ -689,13 +801,16 @@ function pickAnswer(idx){
   });
 
   if(ok){correctN++;miniConfetti()}else{wrongN++}
+  updateStreak(ok);
   $('correctCount').textContent=correctN;
   $('wrongCount').textContent=wrongN;
 
   fb.className=ok?'feedback correct-fb show':'feedback wrong-fb show';
   fb.innerHTML=ok
     ?`<span class="feedback-icon">⭐</span> That's right!<span class="feedback-explain">${s.explain}</span>`
-    :`<span class="feedback-icon">💡</span> Not quite!<span class="feedback-explain">${s.explain}</span>`;
+    :idx===-1
+      ?`<span class="feedback-icon">⏱</span> Time's up!<span class="feedback-explain">${s.explain}</span>`
+      :`<span class="feedback-icon">💡</span> Not quite!<span class="feedback-explain">${s.explain}</span>`;
 
   const nb=$('nextBtn');
   nb.textContent=currentQ===activeSet.length-1?'See Results! ⭐':'Next Play ▶';
@@ -710,7 +825,11 @@ function nextQuestion(){
 }
 
 function showResults(){
+  clearTimerInterval();
   const total=activeSet.length,pct=Math.round((correctN/total)*100);
+  incPlays(lastCat);
+  const isNewBest=saveBest(lastCat,pct);
+  refreshCardBests();
   $('progressFill').style.width='100%';
   let emoji,title,msg,stars='';
   if(pct===100){emoji='🏆';title='PERFECT SCORE!';stars='⭐⭐⭐';msg="You're a softball superstar! You know your stuff inside and out!";launchConfetti()}
@@ -719,8 +838,11 @@ function showResults(){
   else if(pct>=40){emoji='👍';title='Nice Try!';stars='⭐';msg="You're learning! Every softball star started as a beginner. Play again!"}
   else{emoji='💪';title='Keep Practicing!';stars='';msg="Softball has a lot to learn! Play again and you'll get better each time. You've got this!"}
   $('rEmoji').textContent=emoji;$('rTitle').textContent=title;
-  $('rScore').textContent=`You got ${correctN} out of ${total} correct! (${pct}%)`;
+  const hintStat=hintsUsed>0?` • ${hintsUsed} hint${hintsUsed>1?'s':''} used`:'';
+  $('rScore').textContent=`You got ${correctN} out of ${total} correct! (${pct}%)${hintStat}`;
   $('rStars').textContent=stars;$('rMsg').textContent=msg;
+  const pbEl=$('personalBest');
+  if(isNewBest)pbEl.classList.add('show');else pbEl.classList.remove('show');
   showScreen('resultsScreen');
 }
 
